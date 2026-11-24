@@ -4,10 +4,10 @@
    ============================================================ */
 window.INTERCLASSE_CONFIG = {
   // "Project URL"
-  supabaseUrl: "https://SEU-PROJETO.supabase.co",
+  supabaseUrl: "https://ukdpiygmmfpbrzgkmsja.supabase.co",
 
-  // "anon public" (chave pública: pode ficar no site, quem protege os dados são as regras do setup.sql)
-  supabaseAnonKey: "SUA-CHAVE-ANON-PUBLICA",
+  // Chave "publishable" (pública: pode ficar no site, quem protege os dados são as regras do setup.sql)
+  supabaseAnonKey: "sb_publishable_7ZRIyabDRd2cfSg6aYkFSw_JAm-1ohd",
 
   // E-mail do usuário único da organização (criado em Authentication > Users).
   // Quem usa o site só digita a SENHA; este e-mail fica escondido aqui.

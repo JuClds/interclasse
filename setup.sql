@@ -30,6 +30,11 @@ create policy "docs organizacao cria"  on public.docs for insert to authenticate
 create policy "docs organizacao edita" on public.docs for update to authenticated using (true) with check (true);
 create policy "docs organizacao apaga" on public.docs for delete to authenticated using (true);
 
+-- Permissões da API (projetos novos do Supabase não liberam sozinhos)
+grant usage on schema public to anon, authenticated;
+grant select on public.docs to anon, authenticated;
+grant insert, update, delete on public.docs to authenticated;
+
 -- 3) Placar ao vivo (Realtime)
 do $$
 begin
