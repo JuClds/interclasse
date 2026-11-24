@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="adapter.js"></script>
+<title>Interclasse NAVE 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: animado e claro, feito para alunos e organização da escola
+   IDEA: os materiais do NAVE Recife (capa verde, cartões menta, destaque verde escuro)
+   PICTURE: placar geral das 12 turmas num cartão verde escuro, posições em quadradinhos verdes
+   COLOUR and TYPE: identidade NAVE: #41B649, #1A491D, #2B8A31, menta #EAF6EB, fundo #FBFBF8; Poppins
+   LAYOUT: capa verde com abas; placar à esquerda, agora/próximos/avisos à direita; rodapé com listras */
+:root{color-scheme:light dark;
+--bg:light-dark(#fbfbf8,#0c1a0e);--ink:light-dark(#1a491d,#e4f3e5);--mut:light-dark(#4b6a4e,#a3bfa6);
+--card:light-dark(#eaf6eb,#132a18);--line:light-dark(#d2e7d4,#24432a);
+--court:#41b649;--chalk:#fff;--sun:#9be3a1;--sunk:#123515;--hot:light-dark(#b42318,#ff8a80);
+--g:#41b649;--gd:#1a491d;--gm:light-dark(#237528,#6fd176);--gs:light-dark(#1a491d,#2b8a31);
+--gold:#f2c230;--silver:#c9d1d6;--bronze:#d08a4f;--board:#1a491d}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Poppins,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(22px,3.5vw,48px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+a{color:inherit}
+h1,h2,h3{margin:0;line-height:1.1;text-wrap:balance}
+h2{font-size:clamp(24px,3vw,32px);font-weight:700}
+h3{font-size:17px;font-weight:600}
+.mut{color:var(--mut)}
+.scroll{overflow-x:auto}
+/* topo */
+.top{background:var(--court);color:var(--chalk);position:relative;overflow:hidden;padding-bottom:0}
+.top svg.lines{position:absolute;right:-60px;top:-40px;width:min(620px,90vw);height:auto;opacity:.22;pointer-events:none}
+.brand{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between;position:relative}
+.kick{font-size:14px;font-weight:600;color:var(--sun)}
+h1{font-size:clamp(34px,5.4vw,52px);font-weight:700;line-height:1.05;margin-top:4px}
+.sub{margin:6px 0 0;font-size:16px;opacity:.9}
+.who{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:8px;border-radius:99px;padding:8px 14px;font-size:14px;font-weight:600;background:rgba(0,0,0,.22);color:var(--chalk);border:0}
+.chip .dot{width:9px;height:9px;border-radius:50%;background:var(--sun);box-shadow:0 0 0 4px rgba(255,210,63,.25)}
+button.chip{cursor:pointer;min-height:44px;font:inherit;font-size:14px;font-weight:600}
+button.chip[aria-pressed=true]{background:var(--sun);color:var(--sunk)}
+nav.tabs{display:flex;gap:4px;margin-top:22px;position:relative}
+nav.tabs a{flex:none;text-decoration:none;padding:12px 18px;border-radius:14px 14px 0 0;font-weight:600;font-size:15px;color:var(--chalk);opacity:.85}
+nav.tabs a[aria-current=page]{background:var(--bg);color:var(--ink);opacity:1}
+nav.tabs a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+/* avisos de estado */
+.note{background:light-dark(#fff6d6,#2a2408);color:light-dark(#5a4300,#ffe7a0);border-radius:14px;padding:12px 16px;margin-bottom:18px;font-size:15px}
+/* home */
+.home{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px;align-items:start}
+@media(max-width:900px){.home{grid-template-columns:minmax(0,1fr)}}
+.board{background:var(--board);color:#e9f5ec;border-radius:22px;padding:20px clamp(14px,2.4vw,26px) 22px;box-shadow:0 18px 40px -22px rgba(0,0,0,.6),inset 0 0 0 2px #163524}
+.board header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.board h2{color:var(--sun);font-size:clamp(24px,3vw,30px)}
+.board .leg{display:flex;gap:12px;font-size:13px;color:#a9c3b2}
+.board ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.row{position:relative;display:grid;grid-template-columns:30px 32px minmax(0,1fr) auto 56px;gap:10px;align-items:center;padding:9px 10px 11px;border-radius:12px;background:#0c2216}
+.row.t1,.row.t2,.row.t3{padding-block:13px 15px}
+.row.t1{background:#1a3a1f}.row .pos{font-weight:700;font-size:18px;color:#a9c3b2;text-align:right}
+.row.t1 .pos,.row.t2 .pos,.row.t3 .pos{color:var(--sun);font-size:22px}
+.sw{width:20px;height:12px;border-radius:4px;background:var(--c);box-shadow:0 0 0 1px rgba(127,127,127,.35);flex:none}
+.badge img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;background:var(--b)}
+.badge{position:relative;overflow:hidden;width:var(--sz);height:var(--sz);border-radius:50%;background:var(--b);color:var(--k);box-shadow:0 0 0 3px var(--r);display:inline-grid;place-items:center;font-weight:700;font-size:calc(var(--sz)*.36);line-height:1;flex:none;letter-spacing:-.02em}
+.tgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:16px}
+.tcard{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;display:grid;gap:12px;padding-bottom:16px}
+.tcard header{background:var(--b);color:var(--k);display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:16px}
+.tcard header .k{font-size:13px;font-weight:600;opacity:.85}.tcard header h3{font-size:20px}
+.tcard .tp{font-size:24px;font-weight:700;text-align:right;line-height:1}.tcard .tp small{display:block;font-size:13px;font-weight:600;opacity:.85}
+.tcard .pal{height:14px;margin:0 16px;border-radius:7px}
+.tcard>*:not(header):not(.pal){margin-inline:16px}
+.hexes{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:13px;margin-block:0}
+.hexes li{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.hexes code{font-size:13px;color:var(--mut)}
+.txe{border:1px solid var(--line);border-radius:14px;padding:12px;margin:0;display:grid;gap:10px;background:var(--card)}
+.txe legend{display:flex;align-items:center;gap:10px;font-weight:700;padding:0 6px}
+.cols4{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.cin{display:flex;gap:6px;align-items:center;font-weight:400}.cin input[type=color]{width:48px;padding:2px}.cin input[type=number]{width:70px}
+.pd .badge{justify-self:center;margin-bottom:4px}
+.row .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row.t1 .nm,.row.t2 .nm,.row.t3 .nm{font-size:18px}
+.mds{display:flex;gap:6px}
+.m{display:inline-grid;place-items:center;min-width:26px;height:26px;border-radius:50%;font-size:13px;font-weight:700;color:#1b1400}
+.m.o{background:var(--gold)}.m.p{background:var(--silver)}.m.b{background:var(--bronze)}
+.m.z{opacity:.28}
+.pts{font-weight:700;font-size:22px;color:var(--sun);text-align:right;font-variant-numeric:tabular-nums}
+.bar{position:absolute;left:10px;bottom:5px;height:3px;border-radius:3px;background:var(--sun);opacity:.7;max-width:calc(100% - 20px)}
+@media(max-width:520px){.row{grid-template-columns:24px 32px minmax(0,1fr) 46px}.mds{display:none}.board .leg{display:none}}
+.side{display:grid;gap:18px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.panel h3{margin-bottom:10px}
+.live{display:grid;gap:8px}
+.lv{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;text-decoration:none;padding:10px 12px;border-radius:12px;background:light-dark(#eef5ef,#13291e)}
+.lv b{font-weight:600}.lv small{font-size:13px;color:var(--mut)}.lv .tm{grid-column:2;grid-row:1/3;align-self:center;font-weight:700;white-space:nowrap;font-size:15px}
+.pulse{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--hot);margin-right:6px;animation:p 1.6s infinite}
+@keyframes p{50%{opacity:.25}}@media(prefers-reduced-motion:reduce){.pulse{animation:none}}
+.av{border-left:4px solid var(--sun);padding:6px 0 6px 12px;margin:0 0 10px}
+.av p{margin:0;white-space:pre-wrap}.av small{font-size:13px;color:var(--mut)}
+/* agenda */
+.days{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 18px}
+.dy{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:8px 16px;font:inherit;font-weight:600;cursor:pointer;min-height:44px;text-align:left}
+.dy small{display:block;font-size:13px;font-weight:400;color:var(--mut)}
+.dy[aria-pressed=true]{background:var(--court);color:var(--chalk);border-color:var(--court)}
+.dy[aria-pressed=true] small{color:#cfe6d7}
+.agenda{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.ag{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 18px;padding:14px 0;border-bottom:1px solid var(--line)}
+.ag .hr{font-size:20px;font-weight:700;white-space:nowrap;color:var(--court)}
+.ag.gen .hr,.ag.gen .ti{color:var(--mut);font-weight:400}
+.ag .ti{font-weight:600;font-size:17px;text-decoration:none}
+.ag .ti:hover{text-decoration:underline}
+.ag .meta{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:14px;color:var(--mut);margin-top:2px}
+@media(max-width:600px){.ag{grid-template-columns:minmax(0,1fr)}.ag .hr{font-size:17px}}
+.pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:13px;font-weight:600;white-space:nowrap;background:light-dark(#e6ece8,#1c3328);color:var(--ink)}
+.pill.on{background:var(--hot);color:#fff}.pill.fim{background:var(--court);color:var(--chalk)}
+.pill.wait{background:light-dark(#fff0c2,#3b3210);color:light-dark(#5a4300,#ffe08a)}.pill.adi{background:light-dark(#fde2e2,#3d1717);color:light-dark(#8a1c1c,#ffb3b3)}
+.champ{font-weight:600;color:var(--ink)}
+/* modalidades */
+.cats{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.card{display:grid;gap:6px;align-content:start;text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;transition:transform .15s}
+.card:hover{transform:translateY(-2px)}
+@media(prefers-reduced-motion:reduce){.card{transition:none}.card:hover{transform:none}}
+.card .k{font-size:13px;color:var(--mut)}
+.card strong{font-size:18px;line-height:1.2}
+/* detalhe */
+.back{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;font-weight:600;color:var(--mut)}
+.dhead{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:4px 0 8px}
+.hrs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 18px;padding:0;list-style:none}
+.hrs li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:14px}
+.hrs b{white-space:nowrap}
+.obs{background:light-dark(#fff6d6,#2a2408);border-radius:12px;padding:10px 14px;margin:0 0 18px}
+.podio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;margin:10px 0 26px}
+.pd{border-radius:16px 16px 6px 6px;padding:14px;text-align:center;display:grid;gap:4px}
+.pd.o{background:var(--gold);color:#2a1f00;min-height:132px;order:2}.pd.p{background:var(--silver);color:#1d2428;min-height:108px;order:1}.pd.b{background:var(--bronze);color:#2a1505;min-height:92px;order:3}
+.pd span{font-size:13px;font-weight:600}.pd strong{font-size:clamp(15px,2.2vw,20px);line-height:1.2;overflow-wrap:anywhere}
+.chave{display:flex;gap:18px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
+.col{flex:0 0 240px;display:grid;gap:12px;align-content:center;scroll-snap-align:start}
+.col h3{font-size:15px;color:var(--mut);align-self:start}
+.jogo{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tm2{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 12px}
+.tm2+.tm2{border-top:1px solid var(--line)}
+.tm2 .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm2 .sc{font-weight:700;font-variant-numeric:tabular-nums}
+.tm2.win{background:light-dark(#fff3c4,#2c2a0e);font-weight:700}
+.tm2 i{color:var(--mut)}
+.jed{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;border-top:1px dashed var(--line);background:light-dark(#f6f9f6,#0b1d14);align-items:center}
+
+/* formulários */
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-height:44px}
+textarea{width:100%;min-height:90px;resize:vertical}
+label{font-size:14px;font-weight:600;display:grid;gap:4px}
+.btn{font:inherit;font-weight:600;font-size:15px;border:0;border-radius:12px;padding:10px 16px;min-height:44px;cursor:pointer;background:var(--court);color:var(--chalk)}
+.btn.sun{background:var(--sun);color:var(--sunk)}.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.warn{background:transparent;color:var(--hot);border:1px solid currentColor}
+.btn:disabled{opacity:.5;cursor:wait}
+.edit{border:2px dashed light-dark(#9cc7ad,#2c5a41);border-radius:18px;padding:16px;margin:0 0 24px;display:grid;gap:12px;background:light-dark(#f8fbf8,#0a1b13)}
+.edit h3{color:var(--court)}
+.fr{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.ck{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.ck label{flex-direction:row;display:flex;gap:8px;align-items:center;font-weight:400;min-height:40px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 10px}
+.ck input{min-height:0;width:18px;height:18px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.tgrid label{grid-template-columns:12px minmax(0,1fr);align-items:center;gap:8px}
+.tgrid label span.n{grid-column:1/-1;font-size:13px;color:var(--mut)}
+.orgcols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
+@media(max-width:900px){.orgcols{grid-template-columns:minmax(0,1fr)}}
+.res{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.res li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;font-size:15px}
+.res a{font-weight:600;text-decoration:none}.res small{color:var(--mut);font-size:13px}
+footer{color:var(--mut);font-size:13px}
+.seg{display:inline-flex;background:rgba(0,0,0,.25);border-radius:99px;padding:4px;gap:2px}
+.seg button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:99px;padding:8px 14px;min-height:40px;cursor:pointer;background:transparent;color:var(--chalk)}
+.seg button[aria-pressed=true]{background:var(--sun);color:var(--sunk)}
+.edbar{background:var(--sun);color:var(--sunk);border-radius:14px;padding:12px 16px;margin-bottom:18px;font-size:15px}
+body.ed .top{box-shadow:inset 0 -6px 0 var(--sun)}
+.ck .lv{min-height:44px;grid-template-columns:minmax(0,1fr);background:light-dark(#eaf6eb,#132a18)}.ck .lv small{grid-column:1}
+.ag.cx .ti,.ag.cx .hr,.hrs li.cx b{text-decoration:line-through;opacity:.6}
+.agd{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 14px}
+.agd summary{cursor:pointer;min-height:44px;padding:10px 0;font-size:15px}
+.agd[open]{padding-bottom:14px}.agd .slot{padding:10px 0;border-top:1px dashed var(--line)}
+.cxl span{display:flex;gap:8px;align-items:center;min-height:44px;font-weight:600}.cxl input{min-height:0;width:20px;height:20px}
+ /* identidade NAVE */
+.nave{display:inline-grid;line-height:1;font-weight:600;font-size:30px;letter-spacing:.01em;color:#fff;margin-bottom:18px}
+.nave small{font-size:7.5px;font-weight:400;letter-spacing:.04em;margin-top:3px;opacity:.95}
+.top svg.lines{opacity:.4;stroke-width:3}
+.kick{color:#0f2e12;font-weight:600;font-size:15px}
+.top{color:#0f2e12}.top h1{color:#0f2e12}.sub{opacity:1}
+nav.tabs a{color:#0f2e12;opacity:1}
+.chip,.seg{background:#1a491d;color:#fff}
+.skip{border:0;font:inherit;cursor:pointer;position:absolute;left:8px;top:-60px;background:#1a491d;color:#fff;padding:10px 14px;border-radius:8px;z-index:10;font-weight:600}.skip:focus{top:8px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+h1{text-transform:uppercase;letter-spacing:.005em}
+h2{color:var(--gm)}
+
+.chip .dot{background:var(--sun);box-shadow:0 0 0 4px rgba(155,227,161,.3)}
+nav.tabs a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid light-dark(#1a491d,#9be3a1)}
+.board{border-radius:10px;box-shadow:none;color:#eaf6eb}
+.board h2{color:#fff}.board .leg{color:#b9dcbc}
+.row{background:#22582a;border-radius:6px}.row.t1{background:#2b8a31}
+.row .pos,.row.t1 .pos,.row.t2 .pos,.row.t3 .pos{width:28px;height:28px;display:grid;place-items:center;border-radius:4px;background:#9be3a1;color:#1a491d;font-size:14px;text-align:center}
+.row.t1 .pos,.row.t2 .pos,.row.t3 .pos{background:#41b649;color:#fff}
+.pts{color:#9be3a1}.row.t1 .pts{color:#fff}.bar{background:#9be3a1}
+.panel,.card,.tcard,.agd,.txe,.jogo,.hrs li,.dy,.ck label{border-radius:10px;border-color:transparent}
+.lv{background:light-dark(#fbfbf8,#0c1a0e);border-radius:8px}
+.av{border-left-color:var(--g)}
+.pulse{background:var(--gm)}
+.pill{background:light-dark(#d7eed9,#1d3a22)}
+.pill.on{background:var(--g);color:#0f2e12}.pill.on .pulse{background:#0f2e12}
+.pill.fim{background:var(--gs);color:#fff}
+.dy[aria-pressed=true]{background:var(--gs);border-color:transparent;color:#fff}
+.ag .hr,.edit h3{color:var(--gm)}
+.tm2.win{background:light-dark(#cdeccf,#24502a)}
+.jed{background:light-dark(#f4faf4,#0f2213)}
+input,select,textarea{background:light-dark(#fff,#0c1a0e);border-radius:8px;font-weight:400}
+.btn{background:var(--gs);color:#fff;border-radius:8px}.btn.sun{background:var(--g);color:#0f2e12}
+.btn.ghost{border-color:var(--gm);color:var(--gm)}
+.edit{border-radius:10px;border-color:light-dark(#9be3a1,#2b6b30);background:light-dark(#fff,#0f2213)}
+.edbar{border-radius:10px}
+.seg button[aria-pressed=true]{background:#fff;color:#1a491d}
+body.ed .top{box-shadow:inset 0 -6px 0 #1a491d}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;color:var(--gm);font-size:13px}
+.stripes{width:96px;height:14px;background:repeating-linear-gradient(-60deg,var(--g) 0 5px,transparent 5px 9px);flex:none}
+#toast{background:#1a491d;color:#fff}
+.pens{list-style:none;margin:0;padding:6px 12px 8px;display:grid;gap:2px;font-size:13px;color:var(--hot)}
+.pens b{font-weight:700}.tcard .pens{padding:0;margin-inline:16px}
+.penchip{display:inline-grid;place-items:center;min-width:34px;height:26px;padding:0 6px;border-radius:13px;background:#ffd6d1;color:#8a1c12;font-size:13px;font-weight:700}
+.tro.pen summary{color:var(--hot)}.tro.pen select,.tro.pen input{width:100%}
+.penlist{list-style:none;margin:0;padding:0;display:grid;gap:8px}.penlist li{display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--card);border-radius:10px;padding:8px 12px}
+.jn{font-size:13px;color:var(--mut);padding:6px 12px 0;font-weight:600}
+.jed{display:grid;gap:8px;padding:10px 12px}
+.sline{display:grid;grid-template-columns:minmax(0,1fr) 58px 14px 58px minmax(0,1fr);align-items:center;gap:6px}
+.sl{display:flex;align-items:center;gap:6px;font-weight:700;font-size:16px;min-width:0}.sl.r{justify-content:flex-end}
+.sline input{width:100%;height:52px;font-size:22px;font-weight:700;text-align:center;padding:4px;-moz-appearance:textfield}
+.sline input::-webkit-inner-spin-button,.sline input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.x{text-align:center;font-weight:700;color:var(--mut)}
+.jrow{display:flex;gap:6px;flex-wrap:wrap}.jrow select{flex:1 1 120px}
+.tro{display:grid;gap:8px}.tro summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:14px;color:var(--mut)}
+.tro[open]{gap:8px}.tro .btn{justify-self:start}
+body.ed .col{flex-basis:290px}
+@media(max-width:600px){.nave{font-size:24px;margin-bottom:12px}}
+.lbox{position:fixed;inset:0;background:rgba(10,30,12,.55);display:grid;place-items:center;z-index:20;padding:16px}.lbox[hidden]{display:none}
+.lcard{background:var(--bg);color:var(--ink);border-radius:12px;padding:22px;max-width:380px;width:100%;display:grid;gap:12px;box-shadow:0 20px 50px -20px rgba(0,0,0,.5)}
+.lcard input{width:100%}.lerr{color:var(--hot);margin:0;min-height:1.3em;font-size:14px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:600;font-size:15px;max-width:calc(100vw - 32px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+#toast.show{opacity:1}
+</style>
+</head>
+<body><button class="skip" data-act="skip" type="button">Pular para o conteúdo</button>
+<header class="band top">
+  <svg class="lines" viewBox="0 0 600 400" fill="none" stroke="#fff" stroke-width="6" aria-hidden="true">
+    <rect x="40" y="40" width="520" height="520" rx="4"/><line x1="40" y1="300" x2="560" y2="300"/>
+    <circle cx="300" cy="300" r="80"/><circle cx="300" cy="300" r="10" fill="#fff"/>
+    <path d="M190 40v110h220V40"/><path d="M220 150a80 80 0 0 0 160 0"/>
+  </svg>
+  <div class="wrap">
+    <div class="brand">
+      <div>
+        <div class="nave" role="img" aria-label="NAVE, Núcleo Avançado em Educação">NAVE<small>NÚCLEO AVANÇADO EM EDUCAÇÃO</small></div>
+        <div class="kick">ETE Cícero Dias</div>
+        <h1>Interclasse 2026</h1>
+        <p class="sub" id="sub">24 a 27 de novembro · 24 modalidades</p>
+      </div>
+      <div class="who" id="who"><span class="chip"><span class="dot"></span>Conectando ao placar…</span></div>
+    </div>
+    <nav class="tabs scroll" id="tabs" aria-label="Seções">
+      <a href="#inicio">Placar</a><a href="#agenda">Agenda</a><a href="#modalidades">Modalidades</a><a href="#turmas">Turmas</a>
+    </nav>
+  </div>
+</header>
+<main class="band"><div class="wrap" id="app" tabindex="-1"></div></main>
+<footer class="band"><div class="wrap foot"><span>NAVE Recife · Interclasse 2026 · Horários de Recife, resultados atualizados pela organização</span><span class="stripes" aria-hidden="true"></span></div></footer>
+<div id="loginbox" class="lbox" hidden><form id="loginform" class="lcard" aria-labelledby="lt"><h2 id="lt">Área da organização</h2><p class="mut" style="margin:0">Digite a senha da organização para lançar placar, penalidades e editar.</p><label>Senha<input type="password" id="lpw" autocomplete="current-password" required></label><p id="lerr" class="lerr" role="alert"></p><div class="acts"><button class="btn sun" type="submit" id="lbtn">Entrar</button><button class="btn ghost" type="button" data-act="lclose">Cancelar</button></div></form></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+{
+const DIAS=[{d:"2026-11-24",c:"Ter 24/11",t:"1º dia"},{d:"2026-11-25",c:"Qua 25/11",t:"2º dia"},{d:"2026-11-26",c:"Qui 26/11",t:"3º dia"},{d:"2026-11-27",c:"Sex 27/11",t:"4º dia"}];
+const S=(d,i,f,l,x)=>({d:"2026-11-"+d,i,f,l,x:x||""});
+const GERAL=d=>{const g=[S(d,"07:30","07:30","","Chegada dos alunos"),S(d,"08:30","08:50","","Lanche"),S(d,"12:00","13:00","","Almoço")];if(d===27)g.push(S(27,"15:00","16:40","Quadra","Encerramento"));return g};
+const CAT={esp:"Esportes",ele:"Jogos eletrônicos",tab:"Tabuleiro e tradicionais",out:"Outras"};
+const MODS=[
+{id:"basquete-f",n:"Basquete feminino",c:"esp",h:[S(24,"09:00","11:00","Quadra")]},
+{id:"just-dance",n:"Just Dance",c:"ele",h:[S(24,"09:00","11:00","Auditório")]},
+{id:"free-fire",n:"Free Fire",c:"ele",h:[S(24,"09:00","11:00","Salas 5 e 6")]},
+{id:"basquete-m",n:"Basquete masculino",c:"esp",h:[S(24,"11:00","12:00","Quadra"),S(24,"13:00","16:40","Quadra")]},
+{id:"tenis-mesa",n:"Tênis de mesa",c:"esp",h:[S(24,"13:00","16:40","Recuo")]},
+{id:"dama",n:"Dama",c:"tab",h:[S(24,"13:00","16:40","Biblioteca")]},
+{id:"valorant",n:"Valorant",c:"ele",h:[S(24,"13:00","16:40","Laboratório"),S(25,"09:00","11:00","Laboratório")]},
+{id:"volei-f",n:"Vôlei feminino",c:"esp",h:[S(25,"09:00","11:00","Quadra")]},
+{id:"cabo-m",n:"Cabo de guerra masculino",c:"esp",h:[S(25,"09:00","11:00","Pátio")]},
+{id:"bola-gude",n:"Bola de gude",c:"tab",h:[S(25,"09:00","11:00","Quadra de areia")]},
+{id:"clash-royale",n:"Clash Royale",c:"ele",h:[S(25,"09:00","11:00","Salas 5 e 6")]},
+{id:"volei-m",n:"Vôlei masculino",c:"esp",h:[S(25,"11:00","12:00","Quadra"),S(25,"13:00","16:40","Quadra")]},
+{id:"cabo-f",n:"Cabo de guerra feminino",c:"esp",h:[S(25,"13:00","16:40","Pátio")]},
+{id:"xadrez",n:"Xadrez",c:"tab",h:[S(25,"13:00","16:40","Biblioteca")]},
+{id:"wild-rift",n:"Wild Rift",c:"ele",h:[S(25,"13:00","16:40","Salas 5 e 6")]},
+{id:"futsal-f",n:"Futsal feminino",c:"esp",h:[S(26,"09:00","11:00","Quadra"),S(27,"11:00","12:00","Quadra","Final")]},
+{id:"shuttle-m",n:"Shuttle run masculino",c:"esp",h:[S(26,"09:00","11:00","Pátio")]},
+{id:"efootball",n:"eFootball",c:"ele",h:[S(26,"09:00","11:00","Laboratório")]},
+{id:"futsal-m",n:"Futsal masculino",c:"esp",h:[S(26,"11:00","12:00","Quadra"),S(26,"13:00","16:40","Quadra"),S(27,"13:00","14:00","Quadra","Final")]},
+{id:"shuttle-f",n:"Shuttle run feminino",c:"esp",h:[S(26,"13:00","16:40","Pátio")]},
+{id:"domino",n:"Dominó",c:"tab",h:[S(26,"13:00","16:40","Biblioteca")]},
+{id:"brawl-stars",n:"Brawl Stars",c:"ele",h:[S(26,"13:00","16:40","Salas 5 e 6")]},
+{id:"queimado",n:"Queimado misto",c:"esp",h:[S(27,"09:00","11:00","Quadra")]},
+{id:"badminton",n:"Badminton",c:"esp",h:[S(27,"09:00","11:00","Pátio")]}];
+const MOD=Object.fromEntries(MODS.map(m=>[m.id,m]));
+const T_=(s,p,c,w)=>({s,p,c,w});
+const DEFT=[T_("1A","Wolverine",["#FFE700","#3BA3D7","#000000","#E27168"],[55,30,10,5]),T_("1B","Coringa",["#7F39BE","#A2D314","#FEFEFE","#E54649"],[55,25,15,5]),T_("1C","Thanos",["#EFB014","#62499D","#C277B2","#A4583A"],[50,30,15,5]),T_("1D","Nevasca",["#2C3858","#0BAAD7","#7BC9C4","#DBE4F1"],[45,30,15,10]),
+T_("2A","Wanda",["#541F22","#D33D3F","#F59797","#F5EAD8"],[45,30,15,10]),T_("2B","Agatha",["#696CA6","#7D9ECB","#BD1A91","#FAFEFC"],[45,25,20,10]),T_("2C","Darth Vader",["#171813","#C7D0D6","#D02628","#F9DEC9"],[40,35,20,5]),T_("2D","Venom",["#050706","#1580B5","#FDFDFD","#D92022"],[40,35,20,5]),
+T_("3A","Loki",["#BFE64C","#37401C","#E8BC61","#955E3E"],[50,25,20,5]),T_("3B","Doutor Destino",["#25401F","#78A556","#7F868C","#D8D9D6"],[50,25,20,5]),T_("3C","Deadpool",["#E31A20","#030205","#BE673A","#E3D0A8"],[50,30,15,5]),T_("3D","Motoqueiro Fantasma",["#110807","#FB6309","#FBBE34","#DAECEF"],[50,25,20,5])];
+const ROLES=["Base","Secundária","Acento","Toque final"];
+const TERC="Disputa de 3º lugar";
+const st={cfg:null,res:{},par:[],av:[],ag:{},cm:{},pen:[],assets:null,open:new Set(),db:null,can:false,edit:false,ready:{},slow:false,off:false,day:null,cat:"",busy:false,pending:false};
+st.edit=true;try{st.edit=localStorage.getItem("ic-edit")!=="0"}catch(e){}
+const app=document.getElementById("app");
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const t0=s=>Date.parse(`${s.d}T${s.i}:00-03:00`),t1=s=>Date.parse(`${s.d}T${s.f}:00-03:00`);
+const fmt=h=>{const[a,b]=h.split(":");return(+a)+"h"+(b==="00"?"":b)};
+const faixa=s=>s.i===s.f?fmt(s.i):fmt(s.i)+" às "+fmt(s.f);
+const dia=d=>(DIAS.find(x=>x.d===d)||{}).c||d;
+const isT=v=>Number.isInteger(v)&&v>=0&&v<12;
+const hex=v=>typeof v==="string"&&/^#[0-9a-f]{6}$/i.test(v);
+function TX(i){const d=DEFT[i],t=st.cfg&&Array.isArray(st.cfg.tx)?st.cfg.tx[i]:null;if(!t||typeof t!=="object")return d;
+  return{img:typeof t.img==="string"&&/^[A-Za-z0-9_-]{8,64}$/.test(t.img)?t.img:null,s:typeof t.s==="string"&&t.s.trim()?t.s.trim().slice(0,8):d.s,p:typeof t.p==="string"?t.p.trim().slice(0,40):d.p,c:[0,1,2,3].map(k=>Array.isArray(t.c)&&hex(t.c[k])?t.c[k]:d.c[k]),w:[0,1,2,3].map(k=>Array.isArray(t.w)&&Number.isFinite(+t.w[k])&&+t.w[k]>=0?+t.w[k]:d.w[k])}}
+const tn=i=>{if(!isT(i))return"A definir";const t=TX(i);return t.p?`${t.s} - ${t.p}`:"Turma "+t.s};
+const tc=i=>isT(i)?TX(i).c[0]:"transparent";
+const lum=h=>{const n=parseInt(h.slice(1),16),f=v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4};return .2126*f(n>>16)+.7152*f(n>>8&255)+.0722*f(n&255)};
+const inkOn=h=>lum(h)>.4?"#111":"#fff";
+const badge=(i,sz)=>{if(!isT(i))return"";const t=TX(i);return`<span class="badge" style="--b:${t.c[0]};--r:${t.c[1]};--k:${inkOn(t.c[0])};--sz:${sz||44}px" aria-hidden="true">${esc(t.s)}${t.img?`<img src="${esc(IC_IMG(t.img))}" alt="" loading="lazy">`:""}</span>`};
+const num=(v,d)=>Number.isFinite(+v)&&v!==""&&v!=null?+v:d;
+const PTS=()=>{const p=(st.cfg&&st.cfg.pontos)||{};return{o:num(p.o,100),p:num(p.p,80),b:num(p.b,60),part:num(p.part,20)}};
+const PEN=[["Conduta antidesportiva (9.1)",[["disc","Discussões ou ofensas",-10],["gest","Gestos ofensivos",-10],["odio","Discurso de ódio ou discriminação (expulsão)",-100],["prec","Falas preconceituosas, mesmo como meme (expulsão)",-100],["agre","Agressão física (eliminação)",-100]]],
+["Arbitragem e organização (9.2)",[["recl","Reclamações excessivas",-10],["deso","Desobediência às orientações",-15],["ofar","Ofensa a árbitro ou comissão",-20],["inti","Intimidação",-50]]],
+["Fair play (9.3)",[["regr","Recusa em cumprir regras",-10]]],
+["Organização e pontualidade (9.4)",[["wo","Não comparecimento sem justificativa (W.O.)",-20],["aban","Abandono",-20],["naut","Participante não autorizado (perda da partida)",-20]]],
+["Patrimônio e espaço escolar (9.5)",[["lixo","Lixo no local",-20],["dano","Danos materiais",-50],["vand","Vandalismo",-100]]],
+["Torcidas (9.6)",[["prov","Provocações",-20],["viol","Incentivo à violência",-20],["inva","Invasão de campo",-50],["rein","Reincidência (remoção)",-100]]],
+["Redes sociais (9.7)",[["rede","Ofensas em redes oficiais das turmas",-50]]],
+["Regulamento geral (3.9)",[["som","Aluno na área da caixa de som ou dos árbitros",-10]]],
+["Outra",[["outra","Outra (valor manual)",0]]]];
+const PENM=Object.fromEntries(PEN.flatMap(g=>g[1]).map(x=>[x[0],x]));
+const penOpts=()=>PEN.map(([g,l])=>`<optgroup label="${esc(g)}">${l.map(([c,t,v])=>`<option value="${c}">${esc(t)}${v?" ("+v+")":""}</option>`).join("")}</optgroup>`).join("");
+const PENS=()=>st.pen.filter(x=>isT(x.t)&&Number.isFinite(x.pts));
+const fmtPen=x=>`<li><b>${x.pts}</b> · ${esc(TX(x.t).s)} · ${esc(x.txt||"Penalidade")}${x.obs?" · "+esc(x.obs):""}</li>`;
+const cancelada=m=>status(m)[1]==="Cancelada";
+const R=id=>st.res[id]||{};
+const okS=s=>s&&DIAS.some(x=>x.d===s.d)&&/^\d\d:\d\d$/.test(s.i)&&/^\d\d:\d\d$/.test(s.f)&&typeof s.l==="string";
+function H(m){const g=st.ag[m.id];const h=g&&Array.isArray(g.h)?g.h.filter(okS).map(s=>({d:s.d,i:s.i,f:s.f<s.i?s.i:s.f,l:s.l,x:typeof s.x==="string"?s.x:"",cancel:!!s.cancel})):null;return h&&h.length?h:m.h}
+function CM(){return Object.entries(st.cm).map(([id,v])=>{if(!/^[a-z0-9-]+$/.test(id)||!v)return null;const h=Array.isArray(v.h)?v.h.filter(okS).map(s=>({d:s.d,i:s.i,f:s.f<s.i?s.i:s.f,l:s.l,x:""})):[];return h.length&&typeof v.n==="string"&&v.n.trim()?{id,n:v.n.trim().slice(0,60),c:CAT[v.c]?v.c:"out",h,custom:true,removida:!!v.removida,ts:v.ts||0}:null}).filter(Boolean).sort((a,b)=>a.ts-b.ts)}
+const LIST=()=>[...MODS.filter(m=>!(st.ag[m.id]&&st.ag[m.id].removida)),...CM().filter(m=>!m.removida)];
+const APAG=()=>[...MODS.filter(m=>st.ag[m.id]&&st.ag[m.id].removida),...CM().filter(m=>m.removida)];
+const MODX=id=>LIST().find(m=>m.id===id);
+const MC=m=>!!(st.ag[m.id]&&st.ag[m.id].cancel);
+const ativo=(m,s)=>!s.cancel&&!MC(m);
+const mudou=(m,s)=>!m.h.some(o=>o.d===s.d&&o.i===s.i&&o.f===s.f&&o.l===s.l);
+const parts=id=>st.par.filter(p=>p.mod===id);
+const toastEl=document.getElementById("toast");let tt;
+const toast=m=>{toastEl.textContent=m;toastEl.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove("show"),3200)};
+
+function status(m){const r=R(m.id),now=Date.now(),act=H(m).filter(s=>!s.cancel);
+  if(r.status==="encerrado")return["fim","Encerrado"];
+  if(MC(m)||!act.length)return["adi","Cancelada"];
+  if(r.status==="adiado")return["adi","Adiado"];
+  if(r.status==="andamento")return["on","Em andamento"];
+  if(act.some(s=>t0(s)<=now&&now<t1(s)))return["on","Acontecendo agora"];
+  if(act.every(s=>now>=t1(s)))return["wait","Aguardando resultado"];
+  return["","Agendado"]}
+const pill=m=>{const[k,l]=status(m);return`<span class="pill ${k}">${k==="on"?'<span class="pulse"></span>':""}${l}</span>`};
+const champ=m=>{const r=R(m.id);return isT(r.ouro)?`<span class="champ">Campeã: ${esc(tn(r.ouro))}</span>`:""};
+
+function rank(){const P=PTS(),T=Array.from({length:12},(_,i)=>({i,o:0,p:0,b:0,pts:0,part:0,pen:0,pod:0}));
+  for(const m of LIST()){if(cancelada(m))continue;const seen=new Set();for(const q of parts(m.id)){if(isT(q.a))seen.add(q.a);if(isT(q.b))seen.add(q.b)}for(const i of seen){T[i].part++;T[i].pts+=P.part}}
+  for(const x of PENS()){T[x.t].pen+=x.pts;T[x.t].pts+=x.pts}
+  for(const m of LIST()){const r=R(m.id);if(isT(r.ouro)){T[r.ouro].o++;T[r.ouro].pts+=P.o}if(isT(r.prata)){T[r.prata].p++;T[r.prata].pts+=P.p}if(isT(r.bronze)){T[r.bronze].b++;T[r.bronze].pts+=P.b}}
+  return T.sort((a,b)=>b.pts-a.pts||b.o-a.o||b.p-a.p||b.b-a.b||a.i-b.i)}
+
+function notes(){let h="";
+  if(st.off)h+=`<div class="note">${window.IC_CONFIG_OK?"Não foi possível conectar ao placar agora. Confira sua internet. A agenda abaixo funciona mesmo assim.":"Falta configurar o Supabase no arquivo config.js (veja o README). A agenda abaixo já funciona."}</div>`;
+  else if(st.slow&&!st.ready.res)h+=`<div class="note">Ainda carregando os resultados. Se demorar, confira sua conexão.</div>`;
+  return h}
+
+function vHome(){const r=rank(),max=Math.max(1,...r.map(x=>x.pts)),now=Date.now();
+  const md=(k,n)=>`<span class="m ${k} ${n?"":"z"}">${n}</span>`;
+  const rows=r.map((x,k)=>`<li class="row ${k<3&&x.pts>0?"t"+(k+1):""}"><span class="pos">${k+1}º</span>${badge(x.i,32)}<span class="nm">${esc(tn(x.i))}</span><span class="mds" role="img" aria-label="${x.o} ouro, ${x.p} prata, ${x.b} bronze${x.pen?", "+x.pen+" pontos de penalidade":""}">${x.pen?`<span class="penchip">${x.pen}</span>`:""}${md("o",x.o)}${md("p",x.p)}${md("b",x.b)}</span><span class="pts">${x.pts}<span class="vh"> pontos</span></span><span class="bar" style="width:${x.pts/max*100}%"></span></li>`).join("");
+  const slots=LIST().flatMap(m=>H(m).filter(s=>ativo(m,s)).map(s=>({m,s}))).sort((a,b)=>t0(a.s)-t0(b.s));
+  const agora=slots.filter(o=>t0(o.s)<=now&&now<t1(o.s)&&R(o.m.id).status!=="encerrado");
+  const prox=slots.filter(o=>t0(o.s)>now).sort((a,b)=>t0(a.s)-t0(b.s));
+  const nx=prox.length?prox.filter(o=>t0(o.s)===t0(prox[0].s)):[];
+  const lv=(o,tm)=>`<a class="lv" href="#m-${o.m.id}"><b>${esc(o.m.n)}${o.s.x?" · "+esc(o.s.x):""}</b><span class="tm">${tm}</span><small>${esc(o.s.l)}</small></a>`;
+  const fin=LIST().filter(m=>isT(R(m.id).ouro)).sort((a,b)=>(R(b.id).ts||0)-(R(a.id).ts||0)).slice(0,6);
+  const P=PTS();
+  const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/Recife"});
+  const hoje=LIST().filter(m=>H(m).some(s=>s.d===today));
+  const quick=st.can&&st.edit?`<section class="edit" style="margin:0"><h3>Lançar resultados${hoje.length?" de hoje":""}</h3><a class="btn sun" href="#lancar" style="text-decoration:none;display:inline-flex;align-items:center;justify-self:start">Abrir tela de lançar placar</a><div class="ck">${(hoje.length?hoje:LIST()).map(m=>`<a class="lv" href="#m-${m.id}"><b>${esc(m.n)}</b><small>${isT(R(m.id).ouro)?"Pódio lançado":"Sem pódio"}</small></a>`).join("")}</div><div class="acts"><a class="btn ghost" href="#org" style="text-decoration:none;display:inline-flex;align-items:center">Turmas, pontos e avisos</a></div></section>`:"";
+  return notes()+`<div class="home">
+  <section class="board" aria-label="Placar geral"><header><h2>Placar geral</h2><div class="leg"><span>1º ${P.o}</span><span>2º ${P.p}</span><span>3º ${P.b}</span><span>Participação ${P.part}</span></div></header><ol>${rows}</ol></section>
+  <div class="side">${quick}
+    <section class="panel"><h3>${agora.length?'<span class="pulse"></span>Acontecendo agora':"Agora"}</h3><div class="live">${agora.length?agora.map(o=>lv(o,"até "+fmt(o.s.f))).join(""):`<p class="mut" style="margin:0">${slots.length&&now<t0(slots[0].s)?"Os jogos ainda não começaram.":now>Date.parse("2026-11-27T16:40:00-03:00")?"Interclasse encerrado. Obrigado, turmas!":"Nenhuma modalidade em quadra neste horário."}</p>`}</div></section>
+    ${nx.length?`<section class="panel"><h3>Próximo: ${dia(nx[0].s.d)}, ${fmt(nx[0].s.i)}</h3><div class="live">${nx.map(o=>lv(o,fmt(o.s.i))).join("")}</div></section>`:""}
+    <section class="panel"><h3>Avisos</h3>${st.av.length?st.av.map(a=>`<div class="av"><p>${esc(a.txt)}</p><small>${a.ts?new Date(a.ts).toLocaleString("pt-BR",{timeZone:"America/Recife",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""}</small></div>`).join(""):`<p class="mut" style="margin:0">Sem avisos por enquanto.</p>`}</section>
+    <section class="panel"><h3>Últimos resultados</h3>${fin.length?`<ul class="res">${fin.map(m=>`<li><a href="#m-${m.id}">${esc(m.n)}</a><small>${dia(H(m)[H(m).length-1].d)}</small><span>Ouro: ${esc(tn(R(m.id).ouro))}</span></li>`).join("")}</ul>`:`<p class="mut" style="margin:0">Os campeões aparecem aqui assim que forem lançados.</p>`}</section>
+  </div></div>`}
+
+function vAgenda(){const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/Recife"});
+  if(!st.day)st.day=DIAS.some(d=>d.d===today)?today:DIAS[0].d;
+  const dn=+st.day.slice(8);
+  const items=[...GERAL(dn).map(s=>({s})),...LIST().flatMap(m=>H(m).filter(s=>s.d===st.day).map(s=>({m,s})))].sort((a,b)=>t0(a.s)-t0(b.s)||(a.m?1:0)-(b.m?1:0));
+  return notes()+`<h2>Agenda</h2><div class="days" role="group" aria-label="Dia">${DIAS.map(d=>`<button class="dy" data-act="day" data-id="${d.d}" aria-pressed="${d.d===st.day}">${d.c}<small>${d.t}</small></button>`).join("")}</div>
+  <ol class="agenda">${items.map(({m,s})=>m?`<li class="ag ${ativo(m,s)?"":"cx"}"><span class="hr">${faixa(s)}</span><div><a class="ti" href="#m-${m.id}">${esc(m.n)}${s.x?" · "+esc(s.x):""}</a><div class="meta"><span>${esc(s.l)}</span>${ativo(m,s)?pill(m):'<span class="pill adi">Cancelado</span>'}${mudou(m,s)?'<span class="pill wait">Horário ou local alterado</span>':""}${champ(m)}</div>${R(m.id).obs?`<div class="meta">${esc(R(m.id).obs)}</div>`:""}</div></li>`:`<li class="ag gen"><span class="hr">${faixa(s)}</span><div><span class="ti">${esc(s.x)}</span>${s.l?`<div class="meta"><span>${esc(s.l)}</span></div>`:""}</div></li>`).join("")}</ol>`}
+
+function vMods(){const list=LIST().filter(m=>!st.cat||m.c===st.cat);
+  return notes()+`<h2>Modalidades</h2><div class="cats" role="group" aria-label="Categoria"><button class="dy" data-act="cat" data-id="" aria-pressed="${!st.cat}">Todas</button>${Object.entries(CAT).map(([k,v])=>`<button class="dy" data-act="cat" data-id="${k}" aria-pressed="${st.cat===k}">${v}</button>`).join("")}</div>
+  <div class="grid">${list.map(m=>`<a class="card" href="#m-${m.id}"><span class="k">${CAT[m.c]}</span><strong>${esc(m.n)}</strong><span class="mut" style="font-size:14px">${H(m).map(s=>dia(s.d)+", "+faixa(s)).join(" · ")}</span><span>${pill(m)}</span>${champ(m)}</a>`).join("")}</div>`}
+
+function jogo(p){const w=t=>p.venc!=null&&p.venc===t;
+  const src=k=>{const sid=k==="a"?p.fa:p.fb;const q=sid&&st.par.find(x=>x.id===sid);return q?"Vencedor do jogo "+esc(q.n||""):null};
+  const side=(k,t,sc)=>`<div class="tm2 ${w(t)?"win":""}">${isT(t)?badge(t,24):"<span></span>"}<span class="nm">${isT(t)?esc(tn(t)):`<i>${src(k)||(k==="b"&&!p.tbd&&!p.fb?"folga":"A definir")}</i>`}</span><span class="sc">${sc==null?"":esc(sc)}</span></div>`;
+  const pj=PENS().filter(x=>x.jogo===p.id);
+  let h=`<div class="jogo">${p.n?`<div class="jn">Jogo ${esc(p.n)}</div>`:""}${side("a",p.a,p.pa)}${side("b",p.b,p.pb)}${pj.length?`<ul class="pens">${pj.map(fmtPen).join("")}</ul>`:""}`;
+  if(st.edit&&st.can){const id=esc(p.id),sg=t=>isT(t)?esc(TX(t).s):"?",nm=t=>isT(t)?esc(tn(t)):"turma a definir";
+    h+=`<div class="jed"><div class="sline"><label class="sl" for="pa_${id}">${isT(p.a)?badge(p.a,26):""}<span>${sg(p.a)}</span></label>
+    <input type="number" inputmode="numeric" min="0" id="pa_${id}" value="${p.pa??""}" aria-label="Placar de ${nm(p.a)}"><span class="x" aria-hidden="true">x</span>
+    <input type="number" inputmode="numeric" min="0" id="pb_${id}" value="${p.pb??""}" aria-label="Placar de ${nm(p.b)}"><label class="sl r" for="pb_${id}"><span>${sg(p.b)}</span>${isT(p.b)?badge(p.b,26):""}</label></div>
+    <div class="jrow"><select id="v_${id}" aria-label="Vencedor do jogo"><option value="auto">Pelo placar</option><option value="a" ${p.venc!=null&&p.venc===p.a?"selected":""}>Vence ${sg(p.a)}</option><option value="b" ${p.venc!=null&&p.venc===p.b?"selected":""}>Vence ${sg(p.b)}</option><option value="x">Sem vencedor</option></select><button class="btn sun" data-act="savej" data-id="${id}" aria-label="Salvar jogo ${esc(p.n||"")}">Salvar</button></div>
+    <details class="tro pen"><summary>Aplicar penalidade</summary><select id="pn_t_${id}" aria-label="Turma penalizada">${[p.a,p.b].filter(isT).map(t=>`<option value="${t}">${esc(tn(t))}</option>`).join("")}<option value="">Outra turma (escolher abaixo)</option></select><select id="pn_x_${id}" aria-label="Outra turma">${opts(null,"Outra turma")}</select><select id="pn_c_${id}" aria-label="Infração">${penOpts()}</select><input type="number" id="pn_v_${id}" placeholder="Valor (só para Outra)" aria-label="Valor da penalidade manual"><input id="pn_o_${id}" maxlength="120" placeholder="Observação (opcional)" aria-label="Observação da penalidade"><button class="btn warn" data-act="pen" data-id="${id}">Aplicar penalidade</button><span class="mut" style="font-size:13px">W.O. e participante não autorizado também dão a vitória ao adversário.</span></details>
+    <details class="tro"><summary>Trocar turmas ou excluir jogo</summary><div class="jrow"><select id="ja_${id}" aria-label="Turma da esquerda">${opts(isT(p.a)?p.a:null,"A definir")}</select><select id="jb_${id}" aria-label="Turma da direita">${opts(isT(p.b)?p.b:null,"A definir")}</select></div><button class="btn warn" data-act="delj" data-id="${id}">Excluir jogo</button></details></div>`}
+  return h+"</div>"}
+
+function chave(m){const ps=parts(m.id);
+  if(!ps.length)return`<p class="mut">Nenhuma chave cadastrada para esta modalidade.</p>`;
+  const cols={};for(const p of ps){const k=String(p.fase||"Partidas");const c=cols[k]||(cols[k]={r:p.r||1,l:[]});c.l.push(p);c.r=Math.min(c.r,p.r||1)}
+  const ord=Object.entries(cols).sort((a,b)=>a[1].r-b[1].r||(a[0]==="Final")-(b[0]==="Final"));
+  return`<div class="chave" tabindex="0" aria-label="Chave">${ord.map(([k,c])=>`<div class="col"><h3>${esc(k)}</h3>${c.l.sort((a,b)=>(a.ordem||0)-(b.ordem||0)).map(jogo).join("")}</div>`).join("")}</div>`}
+
+const opts=(sel,none)=>(none?`<option value="">${none}</option>`:"")+Array.from({length:12},(_,i)=>`<option value="${i}" ${sel===i?"selected":""}>${esc(tn(i))}</option>`).join("");
+
+function resFields(m){const r=R(m.id),p=m.id+"__";
+  return`<div class="fr"><label>Situação<select id="${p}st"><option value="">Automática pelo horário</option>${[["andamento","Em andamento"],["encerrado","Encerrado"],["adiado","Adiado"]].map(([v,l])=>`<option value="${v}" ${r.status===v?"selected":""}>${l}</option>`).join("")}</select></label>
+  <label>Ouro<select id="${p}o">${opts(r.ouro,"A definir")}</select></label><label>Prata<select id="${p}p">${opts(r.prata,"A definir")}</select></label><label>Bronze<select id="${p}b">${opts(r.bronze,"A definir")}</select></label></div>
+  <label>Observação (aparece para todos)<input id="${p}obs" maxlength="200" value="${esc(r.obs||"")}" placeholder="Ex.: começa 15 minutos depois"></label>`}
+function vLancar(){if(!(st.can&&st.edit))return`<p>Troque para "Visão de edição" no topo para lançar o placar.</p>`;
+  const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/Recife"});if(!st.lday)st.lday=DIAS.some(d=>d.d===today)?today:DIAS[0].d;
+  const list=LIST().filter(m=>H(m).some(s=>s.d===st.lday));
+  return`<h2>Lançar placar</h2><p class="mut">Escolha o dia, marque ouro, prata e bronze de cada modalidade e toque em Salvar. O placar geral atualiza na hora para todo mundo. Placar de cada partida fica em "Chave e partidas".</p>
+  <div class="days" role="group" aria-label="Dia">${DIAS.map(d=>`<button class="dy" data-act="lday" data-id="${d.d}" aria-pressed="${d.d===st.lday}">${d.c}<small>${d.t}</small></button>`).join("")}</div>
+  ${list.length?list.map(m=>`<section class="edit" aria-labelledby="h_${m.id}"><div class="dhead" style="margin:0"><h3 id="h_${m.id}">${esc(m.n)}</h3>${pill(m)}</div><span class="mut" style="font-size:14px">${H(m).filter(s=>s.d===st.lday).map(s=>faixa(s)+", "+esc(s.l)+(s.cancel?" (cancelado)":"")).join(" · ")}</span>${resFields(m)}<div class="acts"><button class="btn sun" data-act="saveres" data-id="${m.id}" aria-label="Salvar resultado de ${esc(m.n)}">Salvar</button><a class="btn ghost" href="#m-${m.id}" style="text-decoration:none;display:inline-flex;align-items:center">Chave e partidas</a></div></section>`).join(""):`<p class="mut">Nenhuma modalidade neste dia.</p>`}`}
+function vMod(id){const m=MODX(id);if(!m)return`<p>${APAG().some(x=>x.id===id)?"Esta modalidade foi apagada pela organização.":"Modalidade não encontrada."} <a href="#modalidades">Ver todas</a></p>`;
+  const r=R(id),ps=parts(id),P=[["o","Ouro",r.ouro],["p","Prata",r.prata],["b","Bronze",r.bronze]];
+  let ed="";
+  if(st.edit&&st.can){
+    ed=`<section class="edit" aria-label="Editar resultado"><div class="acts"><button class="btn ghost" data-act="openag" data-id="${id}">Mudar horário, local ou cancelar</button></div><h3>Resultado e situação</h3>${resFields(m)}
+    <div class="acts"><button class="btn sun" data-act="saveres" data-id="${id}">Salvar resultado</button>${ps.some(p=>p.fase==="Final"&&p.venc!=null)?`<button class="btn ghost" data-act="pod" data-id="${id}">Preencher pódio pela chave</button>`:""}</div>
+    <h3>Chave</h3>${ps.length?`<div class="acts">${ps.some(p=>p.fa||p.fb)?`<span class="mut" style="align-self:center">Esta chave avança sozinha: lance o placar de cada jogo e o vencedor passa para o próximo.</span>`:`<button class="btn" data-act="avancar" data-id="${id}">Avançar vencedores para a próxima fase</button>`}<button class="btn warn" data-act="apagar" data-id="${id}">Apagar chave inteira</button></div>`:`<p class="mut" style="margin:0">Marque as turmas que vão jogar e sorteie a chave. Se sobrar vaga, algumas turmas passam direto (folga).</p><div class="ck" id="gsel">${Array.from({length:12},(_,i)=>`<label><input type="checkbox" value="${i}" checked>${badge(i,22)}${esc(tn(i))}</label>`).join("")}</div><div class="acts"><button class="btn" data-act="gerar" data-id="${id}">Sortear chave</button></div>`}
+    <details><summary style="cursor:pointer;min-height:44px;display:flex;align-items:center">Adicionar partida manualmente</summary><div class="fr" style="margin-top:8px"><label>Fase<input id="n_f" value="${esc(ps.length?"":"Partida")}" placeholder="Ex.: Semifinal"></label><label>Turma A<select id="n_a">${opts(null)}</select></label><label>Turma B<select id="n_b">${opts(1)}</select></label><button class="btn" data-act="addj" data-id="${id}">Adicionar</button></div></details>
+    </section>`}
+  return`<a class="back" href="#modalidades">← Todas as modalidades</a><div class="dhead"><h2>${esc(m.n)}</h2>${pill(m)}</div><span class="mut">${CAT[m.c]}</span>
+  <ul class="hrs">${H(m).map(s=>`<li class="${ativo(m,s)?"":"cx"}"><b>${dia(s.d)}, ${faixa(s)}</b> · ${esc(s.l)}${s.x?" · "+esc(s.x):""}${ativo(m,s)?"":" · cancelado"}${mudou(m,s)?" · alterado":""}</li>`).join("")}</ul>
+  ${r.obs?`<p class="obs">${esc(r.obs)}</p>`:""}${notes()}
+  <h3>Pódio</h3><div class="podio">${P.map(([k,l,t])=>`<div class="pd ${k}">${badge(t,40)}<span>${l}</span><strong>${isT(t)?esc(tn(t)):"A definir"}</strong></div>`).join("")}</div>
+  ${ed}<h3 style="margin-bottom:12px">Chave</h3>${chave(m)}`}
+
+function vTurmas(){const r=rank(),pos={};r.forEach((x,k)=>pos[x.i]=k+1);
+  return notes()+`<h2>Turmas</h2><p class="mut">Tema 2026: anti-heróis e vilões.</p><div class="tgrid2">${Array.from({length:12},(_,i)=>{const t=TX(i),x=r.find(y=>y.i===i);
+    const pods=LIST().flatMap(m=>{const q=R(m.id);return[["Ouro",q.ouro],["Prata",q.prata],["Bronze",q.bronze]].filter(z=>z[1]===i).map(z=>z[0]+" em "+m.n)});
+    return`<article class="tcard" style="--b:${t.c[0]};--k:${inkOn(t.c[0])}"><header>${badge(i,72)}<div><h3>${esc(tn(i))}</h3><span class="k">${x.o} ouro · ${x.p} prata · ${x.b} bronze</span></div><span class="tp">${pos[i]}º<small>${x.pts} pts</small></span></header><p class="mut" style="margin-block:0;font-size:14px">${pods.length?esc(pods.join(", ")):"Ainda sem pódio."}</p><p style="margin-block:0;font-size:14px">Participação: ${x.part} modalidades (+${x.part*PTS().part}) · Penalidades: ${x.pen}</p>${PENS().filter(q=>q.t===i).length?`<ul class="pens">${PENS().filter(q=>q.t===i).map(fmtPen).join("")}</ul>`:""}</article>`}).join("")}</div>`}
+function vPen(){if(!(st.can&&st.edit))return`<p>Troque para "Visão de edição" no topo para lançar penalidades.</p>`;
+  const L=PENS().slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  return`<h2>Penalidades</h2><p class="mut">Perda de pontos conforme o item 9 do edital (e 3.9). A penalidade desconta direto da pontuação da turma no placar geral. Penalidades de um jogo também podem ser lançadas dentro da chave, em "Aplicar penalidade".</p>
+  <section class="edit"><h3>Nova penalidade</h3><div class="fr"><label>Turma<select id="pg_t">${opts(null,"Escolha a turma")}</select></label><label>Infração<select id="pg_c">${penOpts()}</select></label><label>Modalidade (opcional)<select id="pg_m"><option value="">Geral, fora de jogo</option>${LIST().map(m=>`<option value="${m.id}">${esc(m.n)}</option>`).join("")}</select></label><label>Valor manual<input type="number" id="pg_v" placeholder="Só para Outra"></label></div>
+  <label>Observação (opcional)<input id="pg_o" maxlength="120" placeholder="Ex.: torcida no jogo de vôlei"></label><div class="acts"><button class="btn warn" data-act="peng">Aplicar penalidade</button></div></section>
+  <h3 style="margin:8px 0">Penalidades lançadas (${L.length})</h3>${L.length?`<ul class="penlist">${L.map(x=>`<li><span><b>${x.pts}</b> · ${esc(tn(x.t))} · ${esc(x.txt||"")}${x.mod&&MODX(x.mod)?" · "+esc(MODX(x.mod).n):""}${x.obs?" · "+esc(x.obs):""}</span><button class="btn ghost" data-act="delpen" data-id="${esc(x.id)}">Remover</button></li>`).join("")}</ul>`:`<p class="mut">Nenhuma penalidade até agora.</p>`}`}
+function vOrg(){if(!st.can)return`<p>Esta área é só para a organização.</p>`;if(!st.edit)return`<p>Troque para "Visão de edição" no topo para usar esta área.</p>`;
+  const P=PTS();
+  return`<h2>Organização</h2><p class="mut">Só quem entra com a senha da organização vê esta aba. Todo mundo com o link vê o placar, a agenda e as chaves, sem precisar de login.</p>
+  <div class="orgcols"><section class="edit"><h3>Turmas e paletas</h3><p class="mut" style="margin:0">Tema 2026: anti-heróis e vilões. A imagem aparece no círculo da turma em todo o app. Sem imagem, o círculo mostra a sigla nas cores escolhidas.</p>${Array.from({length:12},(_,i)=>{const t=TX(i);return`<fieldset class="txe"><legend>${badge(i,56)}${esc(tn(i))}</legend><div class="fr"><label>Turma<input id="x_s_${i}" maxlength="8" value="${esc(t.s)}"></label><label>Personagem<input id="x_p_${i}" maxlength="40" value="${esc(t.p)}"></label></div>
+  <div class="fr"><label>Brasão ou foto<input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" data-up="${i}" ${st.assets?"":"disabled"}></label>${t.img?`<button class="btn warn" data-act="rmimg" data-id="${i}">Remover imagem</button>`:""}</div>
+  <div class="cols4"><label>Cor do fundo<span class="cin"><input type="color" id="x_c_${i}_0" value="${t.c[0].toLowerCase()}"></span></label><label>Cor do contorno<span class="cin"><input type="color" id="x_c_${i}_1" value="${t.c[1].toLowerCase()}"></span></label></div></fieldset>`}).join("")}
+  <h3>Pontuação (edital, item 8)</h3><div class="fr"><label>1º lugar<input type="number" id="p_o" value="${P.o}"></label><label>2º lugar<input type="number" id="p_p" value="${P.p}"></label><label>3º lugar<input type="number" id="p_b" value="${P.b}"></label><label>Participação por modalidade<input type="number" id="p_pt" value="${P.part}"></label></div><p class="mut" style="margin:0;font-size:14px">A participação conta para cada turma que aparece na chave de uma modalidade não cancelada.</p>
+  <div class="acts"><button class="btn sun" data-act="savecfg">Salvar turmas e pontos</button></div></section>
+  <section class="edit"><h3>Backup e migração dos dados</h3><p class="mut" style="margin:0;font-size:14px">Copia todos os resultados, chaves, penalidades, avisos, horários e turmas em um texto (JSON). Serve para guardar uma cópia ou levar os dados para a versão com Supabase. As imagens das turmas não vão junto e precisam ser enviadas de novo.</p>
+  <div class="acts"><button class="btn" data-act="exp">Copiar todos os dados</button></div><textarea id="exp_txt" readonly aria-label="Dados exportados" placeholder="Os dados aparecem aqui depois de tocar em Copiar." style="min-height:70px;font-size:13px"></textarea>
+  <details class="tro"><summary>Importar dados de um backup</summary><textarea id="imp_txt" aria-label="Cole aqui o JSON exportado" placeholder="Cole aqui o texto copiado"></textarea><button class="btn warn" data-act="imp">Importar (substitui os itens iguais)</button></details></section>
+  <section class="edit"><h3>Novo aviso</h3><textarea id="a_txt" maxlength="400" placeholder="Ex.: Final do futsal masculino mudou para 13h30."></textarea><div class="acts"><button class="btn" data-act="aviso">Publicar aviso</button></div>
+  ${st.av.map(a=>`<div class="av"><p>${esc(a.txt)}</p><button class="btn warn" data-act="delav" data-id="${esc(a.id)}">Excluir aviso</button></div>`).join("")}</section></div>
+  <section class="edit" id="novas"><h3>Nova modalidade</h3><div class="fr"><label>Nome<input id="nm_n" maxlength="60" placeholder="Ex.: Corrida de saco"></label><label>Categoria<select id="nm_c">${Object.entries(CAT).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></label><label>Dia<select id="nm_d">${DIAS.map(x=>`<option value="${x.d}">${x.c}</option>`).join("")}</select></label><label>Início<input type="time" id="nm_i" value="09:00"></label><label>Fim<input type="time" id="nm_f" value="11:00"></label><label>Local<input id="nm_l" maxlength="40" placeholder="Ex.: Pátio"></label></div>
+  <div class="acts"><button class="btn sun" data-act="newmod">Criar modalidade</button></div><p class="mut" style="margin:0">Depois de criar, você pode acrescentar mais horários nela, logo abaixo. Para apagar uma modalidade, abra ela na lista de horários e toque em "Apagar modalidade".</p>
+  ${APAG().length?`<h3>Modalidades apagadas</h3>${APAG().map(m=>`<div class="acts" style="align-items:center"><span style="flex:1">${esc(m.n)}</span><button class="btn ghost" data-act="restmod" data-id="${m.id}">Restaurar</button></div>`).join("")}`:""}</section>
+  <section class="edit" id="horarios"><h3>Horários, locais e cancelamentos</h3><p class="mut" style="margin:0">Para imprevistos: abra a modalidade, ajuste dia, horário ou local, ou marque como cancelado, e salve. A agenda pública atualiza na hora e mostra o que mudou.</p>
+  ${DIAS.map(d=>{const l=LIST().filter(m=>m.h[0].d===d.d);return l.length?`<h3 style="margin-top:8px">${d.c}</h3>`+l.map(agEd).join(""):""}).join("")}</section>`}
+function agEd(m){const h=H(m),g=st.ag[m.id],flags=[m.custom?"nova":"",MC(m)?"modalidade cancelada":"",h.some(s=>s.cancel)&&!MC(m)?"horário cancelado":"",g&&Array.isArray(g.h)?"alterada":""].filter(Boolean).join(", ");
+  return`<details class="agd" id="ag_${m.id}" data-id="${m.id}" ${st.open.has(m.id)?"open":""}><summary><b>${esc(m.n)}</b><span class="mut"> · ${h.map(s=>dia(s.d)+" "+faixa(s)+", "+esc(s.l)).join(" · ")}</span>${flags?` <span class="pill ${MC(m)?"adi":"wait"}">${flags}</span>`:""}</summary>
+  ${h.map((s,k)=>{const p=`g_${m.id}_${k}`;return`<div class="fr slot"><label>Dia<select id="${p}_d">${DIAS.map(x=>`<option value="${x.d}" ${x.d===s.d?"selected":""}>${x.c}</option>`).join("")}</select></label><label>Início<input type="time" id="${p}_i" value="${s.i}"></label><label>Fim<input type="time" id="${p}_f" value="${s.f}"></label><label>Local<input id="${p}_l" maxlength="40" value="${esc(s.l)}"></label><label class="cxl"><span><input type="checkbox" id="${p}_c" ${s.cancel?"checked":""}>Horário cancelado</span></label>${h.length>1?`<button class="btn warn" data-act="rmslot" data-id="${m.id}" data-k="${k}">Remover horário</button>`:""}</div>`}).join("")}
+  <label class="cxl"><span><input type="checkbox" id="g_${m.id}_mc" ${MC(m)?"checked":""}>Modalidade inteira cancelada</span></label>
+  <div class="acts"><button class="btn sun" data-act="saveag" data-id="${m.id}">Salvar mudanças</button><button class="btn ghost" data-act="addslot" data-id="${m.id}">Adicionar horário</button>${g&&Array.isArray(g.h)?`<button class="btn warn" data-act="restag" data-id="${m.id}">Voltar ao horário original</button>`:""}<button class="btn warn" data-act="delmod" data-id="${m.id}">Apagar modalidade</button></div></details>`}
+function readAg(id){const m=MODX(id);if(!m)return[];return H(m).map((s,k)=>{const p=`g_${id}_${k}`,c=document.getElementById(p+"_c");return{d:val(p+"_d")||s.d,i:val(p+"_i")||s.i,f:val(p+"_f")||s.f,l:val(p+"_l").trim().slice(0,40),x:s.x||"",cancel:!!(c&&c.checked)}})}
+function saveAg(id,h){if(h.some(s=>s.f<s.i))return toast("O horário de fim não pode ser antes do início");const mc=document.getElementById(`g_${id}_mc`);st.open.add(id);
+  return w(()=>st.db.doc("agenda/"+id).set({h,cancel:!!(mc&&mc.checked),ts:Date.now()}),"Agenda atualizada")}
+
+let raf=0;
+function render(force){if(!force){if(!raf)raf=requestAnimationFrame(()=>{raf=0;draw(false)});return}if(raf){cancelAnimationFrame(raf);raf=0}draw(true)}
+function draw(force){const ae=document.activeElement;
+  if(!force&&ae&&app.contains(ae)&&ae.matches("input,select,textarea")){st.pending=true;return}
+  st.pending=false;
+  const h=(location.hash||"#inicio").slice(1);
+  const ED=st.can&&st.edit;document.body.classList.toggle("ed",ED);
+  const tabs=[["inicio","Placar"],["agenda","Agenda"],["modalidades","Modalidades"],["turmas","Turmas"]];if(ED)tabs.splice(1,0,["lancar","Lançar placar"],["pen","Penalidades"]),tabs.push(["org","Organização"]);
+  const cur=h.startsWith("m-")?"modalidades":h;
+  document.getElementById("tabs").innerHTML=tabs.map(([k,l])=>`<a href="#${k}" ${cur===k?'aria-current="page"':""}>${l}</a>`).join("");
+  document.getElementById("sub").textContent=`24 a 27 de novembro · ${LIST().length} modalidades`;
+  const who=document.getElementById("who");
+  who.innerHTML=st.off?`<span class="chip">Modo visitante</span>`:`<span class="chip"><span class="dot"></span>${st.ready.res?"Placar ao vivo":"Conectando ao placar…"}</span>`+(st.can?`<div class="seg" role="group" aria-label="Visão"><button data-act="view" data-id="pub" aria-pressed="${!st.edit}">Visão do público</button><button data-act="view" data-id="ed" aria-pressed="${st.edit}">Visão de edição</button></div><button class="chip" data-act="logout">Sair</button>`:(st.off?"":`<button class="chip" data-act="login">Entrar (organização)</button>`));
+  app.innerHTML=(ED?`<div class="edbar"><b>Visão de edição.</b> Só a organização vê os controles tracejados e a aba Organização. Troque para "Visão do público" para conferir como os alunos estão vendo.</div>`:"")+(h.startsWith("m-")?vMod(h.slice(2)):h==="agenda"?vAgenda():h==="modalidades"?vMods():h==="org"?vOrg():h==="lancar"?vLancar():h==="pen"?vPen():h==="turmas"?vTurmas():vHome())}
+app.addEventListener("toggle",e=>{const d=e.target;if(d.tagName==="DETAILS"&&d.dataset.id){if(d.open)st.open.add(d.dataset.id);else st.open.delete(d.dataset.id)}},true);
+app.addEventListener("focusout",()=>setTimeout(()=>{if(st.pending){const ae=document.activeElement;if(!(ae&&app.contains(ae)&&ae.matches("input,select,textarea")))render()}},500));
+addEventListener("hashchange",()=>{render(true);try{scrollTo(0,0)}catch(e){}try{app.focus({preventScroll:true})}catch(e){}});
+setInterval(()=>render(),60000);
+
+const val=id=>{const e=document.getElementById(id);return e?e.value:""};
+const ti=v=>v===""||v==null?null:(isT(+v)?+v:null);
+async function w(fn,ok){if(!st.db)return toast("Sem conexão com o placar");st.busy=true;try{await fn();if(ok)toast(ok)}catch(e){toast(e&&e.code==="invalid_argument"?"Você não tem permissão para editar":e&&e.code==="quota_exceeded"?"Limite de dados atingido":"Não deu para salvar. Tente de novo.")}st.busy=false;render(true)}
+function readCfg(){const has=!!document.getElementById("x_s_0");
+  const tx=Array.from({length:12},(_,i)=>{const d=TX(i);if(!has)return Object.assign({},d,{c:d.c.slice(),w:d.w.slice()});
+    return{img:d.img,s:val("x_s_"+i).trim().slice(0,8)||d.s,p:val("x_p_"+i).trim().slice(0,40),c:[0,1,2,3].map(k=>{const v=val(`x_c_${i}_${k}`).toUpperCase();return hex(v)?v:d.c[k]}),w:d.w.slice()}});
+  const P=PTS();return{tx,pontos:{o:num(val("p_o"),P.o),p:num(val("p_p"),P.p),b:num(val("p_b"),P.b),part:num(val("p_pt"),P.part)}}}
+async function shrink(f){if(f.type==="image/svg+xml"||f.type==="image/gif")return f;
+  try{const bm=await createImageBitmap(f),m=480,k=Math.min(1,m/Math.max(bm.width,bm.height)),cv=document.createElement("canvas");cv.width=Math.round(bm.width*k);cv.height=Math.round(bm.height*k);cv.getContext("2d").drawImage(bm,0,0,cv.width,cv.height);
+    const b=await new Promise(r=>cv.toBlob(r,"image/webp",.86));return b&&b.type==="image/webp"?b:await new Promise(r=>cv.toBlob(r,"image/png"))}catch(e){return f}}
+document.addEventListener("change",async e=>{const inp=e.target.closest("input[data-up]");if(!inp||!inp.files||!inp.files[0])return;
+  if(!st.assets)return toast("Envio de imagem indisponível nesta visão");if(st.busy)return;const i=+inp.dataset.up,old=TX(i).img;
+  st.busy=true;toast("Enviando imagem…");
+  try{const blob=await shrink(inp.files[0]);const up=await st.assets.upload(blob);const c=readCfg();c.tx[i].img=up.id;await st.db.doc("config/geral").set(c);
+    if(old){try{await st.assets.delete(old)}catch(e){}}toast("Imagem da turma salva")}
+  catch(err){toast(err&&err.code==="too_large"?"Imagem grande demais":err&&err.code==="unsupported_type"?"Use PNG, JPG, WEBP, GIF ou SVG":"Não deu para enviar. Tente de novo.")}
+  st.busy=false;render(true)});
+function addPen(t,c,v,o,mod,p){if(!isT(t))return toast("Escolha a turma penalizada");const d=PENM[c];if(!d)return toast("Escolha a infração");
+  let pts=d[2];if(c==="outra"){pts=-Math.abs(num(v,0));if(!pts)return toast("Informe o valor da penalidade")}
+  const doc={t,pts,cod:c,txt:d[1],obs:String(o||"").trim().slice(0,120),mod:mod||null,jogo:p?p.id:null,ts:Date.now()};
+  let venc=null;if(p&&(c==="wo"||c==="naut")&&isT(p.a)&&isT(p.b)&&(t===p.a||t===p.b))venc=t===p.a?p.b:p.a;
+  const down=venc!=null?st.par.filter(x=>x.fa===p.id||x.fb===p.id):[];
+  return w(async()=>{await st.db.collection("penal").add(doc);
+    if(venc!=null){await st.db.doc("partidas/"+p.id).update({venc});for(const x of down){const pt={};if(x.fa===p.id)pt.a=venc;if(x.fb===p.id)pt.b=venc;await st.db.doc("partidas/"+x.id).update(pt)}}},
+    venc!=null?`Penalidade aplicada (${pts}). Vitória para ${TX(venc).s}.`:`Penalidade aplicada: ${pts} para ${TX(t).s}`)}
+function exportRows(){const out=[],put=(p,d)=>{if(d&&typeof d==="object"){const c=JSON.parse(JSON.stringify(d));delete c.id;out.push({path:p,data:c})}};
+  if(st.cfg){const c=JSON.parse(JSON.stringify(st.cfg));if(Array.isArray(c.tx))c.tx.forEach(t=>{if(t&&typeof t==="object")t.img=null});put("config/geral",c)}
+  for(const[k,v]of Object.entries(st.res))put("res/"+k,v);for(const x of st.par)put("partidas/"+x.id,x);for(const x of st.av)put("avisos/"+x.id,x);
+  for(const[k,v]of Object.entries(st.ag))put("agenda/"+k,v);for(const[k,v]of Object.entries(st.cm))put("mods/"+k,v);for(const x of st.pen)put("penal/"+x.id,x);return out}
+const COLS=["config","res","partidas","avisos","agenda","mods","penal"];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const faseNome=(m,r)=>({1:"Final",2:"Semifinal",4:"Quartas de final",8:"Oitavas de final"})[m]||"Rodada "+r;
+const novo=(id,r,fase,ordem,a,b)=>({mod:id,r,fase,ordem,a,b,pa:null,pb:null,venc:b==null?a:null});
+
+const ACT={
+  day:b=>{st.day=b.dataset.id;render(true)},
+  skip:()=>{try{app.focus()}catch(e){}},
+  lday:b=>{st.lday=b.dataset.id;render(true)},
+  cat:b=>{st.cat=b.dataset.id;render(true)},
+  view:b=>{st.edit=b.dataset.id==="ed";if(!st.edit&&["#org","#lancar","#pen"].includes(location.hash))location.hash="#inicio";try{localStorage.setItem("ic-edit",st.edit?"1":"0")}catch(e){}render(true)},
+  saveres:b=>{const id=b.dataset.id,q=id+"__",s=val(q+"st"),d={status:s||null,ouro:ti(val(q+"o")),prata:ti(val(q+"p")),bronze:ti(val(q+"b")),obs:val(q+"obs").trim().slice(0,200),ts:Date.now()};
+    const pod=[d.ouro,d.prata,d.bronze].filter(x=>x!=null);if(new Set(pod).size<pod.length)return toast("A mesma turma não pode ocupar dois lugares do pódio");
+    if(isT(d.ouro)&&!s)d.status="encerrado";
+    return w(()=>st.db.doc("res/"+id).set(d),"Resultado salvo")},
+  pod:b=>{const ps=parts(b.dataset.id),f=ps.find(p=>p.fase==="Final"&&p.venc!=null),t=ps.find(p=>p.fase===TERC&&p.venc!=null);if(!f)return;
+    const set=(k,v)=>{const e=document.getElementById(k);if(e)e.value=v==null?"":String(v)};
+    const q=b.dataset.id+"__";set(q+"o",f.venc);set(q+"p",f.venc===f.a?f.b:f.a);set(q+"b",t?t.venc:null);toast("Pódio preenchido. Confira e salve.")},
+  gerar:b=>{const id=b.dataset.id,sel=[...document.querySelectorAll("#gsel input:checked")].map(x=>+x.value);
+    if(sel.length<2)return toast("Escolha pelo menos 2 turmas");if(parts(id).length)return toast("Apague a chave atual antes");
+    const t=shuffle(sel);let size=1;while(size<t.length)size*=2;const m=size/2,byes=size-t.length;
+    const pos=[];for(let o=0;o<m&&pos.length<byes;o+=2)pos.push(o);for(let o=1;o<m&&pos.length<byes;o+=2)pos.push(o);
+    let k=0;const L=[];for(let o=0;o<m;o++){const a=t[k++];const bb=pos.includes(o)?null:t[k++];L.push(novo(id,1,faseNome(m,1),o,a,bb))}
+    return w(async()=>{for(const d of L)await st.db.collection("partidas").add(d)},"Chave sorteada")},
+  avancar:b=>{const id=b.dataset.id,ps=parts(id),Rm=Math.max(...ps.map(p=>p.r||1));
+    const cur=ps.filter(p=>(p.r||1)===Rm&&p.fase!==TERC).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+    if(cur.length<2)return toast("A chave já está na final");if(cur.length%2)return toast("Esta fase tem número ímpar de partidas. Adicione a próxima manualmente.");
+    if(cur.some(p=>p.venc==null))return toast("Defina o vencedor de todas as partidas desta fase");
+    const m=cur.length/2,L=[];for(let o=0;o<m;o++)L.push(novo(id,Rm+1,faseNome(m,Rm+1),o,cur[2*o].venc,cur[2*o+1].venc));
+    if(cur.length===2){const lo=cur.map(p=>p.venc===p.a?p.b:p.a);if(lo.every(isT)){const d=novo(id,Rm+1,TERC,1,lo[0],lo[1]);L.push(d)}}
+    return w(async()=>{for(const d of L)await st.db.collection("partidas").add(d)},"Próxima fase criada")},
+  apagar:b=>{const id=b.dataset.id;if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Toque de novo para confirmar";return}
+    return w(async()=>{for(const p of parts(id))await st.db.doc("partidas/"+p.id).delete()},"Chave apagada")},
+  addj:b=>{const id=b.dataset.id,a=ti(val("n_a")),bb=ti(val("n_b")),f=val("n_f").trim().slice(0,40)||"Partida";if(a===bb)return toast("Escolha duas turmas diferentes");
+    const ps=parts(id),same=ps.find(p=>p.fase===f),r=same?same.r||1:(ps.length?Math.max(...ps.map(p=>p.r||1))+1:1),ordem=ps.filter(p=>p.fase===f).length;
+    return w(()=>st.db.collection("partidas").add({mod:id,r,fase:f,ordem,a,b:bb,pa:null,pb:null,venc:null}),"Partida adicionada")},
+  savej:b=>{const id=b.dataset.id,p=st.par.find(x=>x.id===id);if(!p)return;
+    const a=ti(val("ja_"+id)),bb=ti(val("jb_"+id));if(a!=null&&a===bb)return toast("Escolha duas turmas diferentes");
+    const pa=val("pa_"+id)!==""?+val("pa_"+id):null,pb=val("pb_"+id)!==""?+val("pb_"+id):null,v=val("v_"+id);
+    let venc=v==="a"?a:v==="b"?bb:v==="x"?null:(isT(a)&&isT(bb)&&pa!=null&&pb!=null&&pa!==pb?(pa>pb?a:bb):(isT(a)&&bb==null&&!p.fb&&!p.tbd?a:null));
+    if(venc==null&&v!=="x"&&v!=="auto")return toast("Defina a turma antes de marcar o vencedor");
+    const down=st.par.filter(x=>x.fa===id||x.fb===id);
+    return w(async()=>{await st.db.doc("partidas/"+id).update({a,b:bb,pa,pb,venc});
+      for(const x of down){const pt={};if(x.fa===id)pt.a=venc;if(x.fb===id)pt.b=venc;await st.db.doc("partidas/"+x.id).update(pt)}},down.length&&venc!=null?"Partida salva. Vencedor já foi para o próximo jogo.":"Partida salva")},
+  delj:b=>{if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Confirmar";return}return w(()=>st.db.doc("partidas/"+b.dataset.id).delete(),"Partida excluída")},
+  savecfg:()=>w(()=>st.db.doc("config/geral").set(readCfg()),"Turmas e pontos salvos"),
+  rmimg:b=>{const i=+b.dataset.id,old=TX(i).img;if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Toque de novo para remover";return}
+    const c=readCfg();c.tx[i].img=null;return w(async()=>{await st.db.doc("config/geral").set(c);if(old&&st.assets){try{await st.assets.delete(old)}catch(e){}}},"Imagem removida")},
+  aviso:()=>{const txt=val("a_txt").trim().slice(0,400);if(!txt)return toast("Escreva o aviso primeiro");return w(()=>st.db.collection("avisos").add({txt,ts:Date.now()}),"Aviso publicado")},
+  saveag:b=>saveAg(b.dataset.id,readAg(b.dataset.id)),
+  addslot:b=>{const h=readAg(b.dataset.id),l=h[h.length-1];h.push({d:l.d,i:l.i,f:l.f,l:l.l,x:"",cancel:false});return saveAg(b.dataset.id,h)},
+  rmslot:b=>{const h=readAg(b.dataset.id);h.splice(+b.dataset.k,1);return saveAg(b.dataset.id,h)},
+  restag:b=>{if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Toque de novo para confirmar";return}return w(()=>st.db.doc("agenda/"+b.dataset.id).delete(),"Horário original restaurado")},
+  newmod:()=>{const n=val("nm_n").trim().slice(0,60),c=val("nm_c"),d=val("nm_d"),i=val("nm_i"),f=val("nm_f"),l=val("nm_l").trim().slice(0,40);
+    if(!n)return toast("Dê um nome para a modalidade");if(!/^\d\d:\d\d$/.test(i)||!/^\d\d:\d\d$/.test(f)||f<i)return toast("Confira o horário de início e fim");
+    const slug=n.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30)||"modalidade";
+    const id="c-"+slug+"-"+Date.now().toString(36);
+    return w(()=>st.db.doc("mods/"+id).set({n,c:CAT[c]?c:"out",h:[{d,i,f,l}],removida:false,ts:Date.now()}),"Modalidade criada")},
+  delmod:b=>{const id=b.dataset.id,m=MODX(id);if(!m)return;if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Toque de novo para apagar";return}
+    st.open.delete(id);const g=st.ag[id];
+    return w(()=>m.custom?st.db.doc("mods/"+id).update({removida:true}):st.db.doc("agenda/"+id).set(Object.assign({},g||{},{removida:true})),"Modalidade apagada. Dá para restaurar em Nova modalidade.")},
+  restmod:b=>{const id=b.dataset.id,m=APAG().find(x=>x.id===id);if(!m)return;const g=st.ag[id];
+    return w(()=>m.custom?st.db.doc("mods/"+id).update({removida:false}):st.db.doc("agenda/"+id).set(Object.assign({},g||{},{removida:false})),"Modalidade restaurada")},
+  openag:b=>{st.open.add(b.dataset.id);location.hash="#org";setTimeout(()=>{const e=document.getElementById("ag_"+b.dataset.id);if(e)e.scrollIntoView({block:"start"})},60)},
+  pen:b=>{const id=b.dataset.id,p=st.par.find(x=>x.id===id);if(!p)return;const tv=val("pn_t_"+id),t=tv!==""?ti(tv):ti(val("pn_x_"+id));
+    return addPen(t,val("pn_c_"+id),val("pn_v_"+id),val("pn_o_"+id),p.mod,p)},
+  peng:()=>addPen(ti(val("pg_t")),val("pg_c"),val("pg_v"),val("pg_o"),val("pg_m")||null,null),
+  delpen:b=>{if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Confirmar";return}return w(()=>st.db.doc("penal/"+b.dataset.id).delete(),"Penalidade removida")},
+  exp:()=>{const j=JSON.stringify({app:"interclasse",v:1,rows:exportRows()});const t=document.getElementById("exp_txt");if(t){t.value=j;t.select()}
+    try{navigator.clipboard.writeText(j).then(()=>toast("Dados copiados. Cole na versão nova em Importar."),()=>toast("Selecione o texto abaixo e copie"))}catch(e){toast("Selecione o texto abaixo e copie")}},
+  imp:b=>{let o;try{o=JSON.parse(val("imp_txt"))}catch(e){return toast("O texto colado não é um backup válido")}
+    const rows=(o&&Array.isArray(o.rows)?o.rows:[]).filter(r=>r&&typeof r.path==="string"&&/^[a-z]+\/[A-Za-z0-9_.~:@+-]+$/.test(r.path)&&COLS.includes(r.path.split("/")[0])&&r.data&&typeof r.data==="object"&&!Array.isArray(r.data));
+    if(!rows.length)return toast("Nenhum dado válido no backup");
+    if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent=`Confirmar importação de ${rows.length} itens`;return}
+    return w(async()=>{if(st.db.bulk)await st.db.bulk(rows);else for(const r of rows)await st.db.doc(r.path).set(r.data)},`${rows.length} itens importados`)},
+  login:()=>{const bx=document.getElementById("loginbox");bx.hidden=false;document.getElementById("lerr").textContent="";setTimeout(()=>document.getElementById("lpw").focus(),30)},
+  lclose:()=>{document.getElementById("loginbox").hidden=true},
+  logout:async()=>{try{await IC_AUTH.logout()}catch(e){}location.reload()},
+  delav:b=>w(()=>st.db.doc("avisos/"+b.dataset.id).delete(),"Aviso excluído")};
+document.addEventListener("keydown",e=>{if(e.key!=="Enter")return;const i=e.target.closest(".sline input");if(!i)return;e.preventDefault();const b=i.closest(".jed").querySelector('[data-act="savej"]');if(b)b.click()});
+document.getElementById("loginform").addEventListener("submit",async e=>{e.preventDefault();const pw=document.getElementById("lpw").value,er=document.getElementById("lerr"),bt=document.getElementById("lbtn");
+  if(!pw)return;bt.disabled=true;er.textContent="Entrando…";
+  try{await IC_AUTH.login(pw);location.reload()}catch(err){er.textContent=/invalid|credentials/i.test(err&&err.message||"")?"Senha incorreta.":"Não deu para entrar. Confira a internet e tente de novo.";bt.disabled=false}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){const bx=document.getElementById("loginbox");if(bx&&!bx.hidden)bx.hidden=true}});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b||st.busy)return;const f=ACT[b.dataset.act];if(f)f(b)});
+
+render(true);
+(async()=>{
+  const c=window.claude;if(!c||!c.use){st.off=true;return render(true)}
+  const [db,user]=await Promise.all([c.use("db").catch(()=>null),c.use("user").catch(()=>null)]);
+  if(!db){st.off=true;return render(true)}
+  st.db=db;
+  try{st.can=user?!!(await user.canEdit()):false}catch(e){st.can=false}
+  if(st.can){c.use("assets").then(a=>{st.assets=a;render()}).catch(()=>{})}
+  const timer=setTimeout(()=>{st.slow=true;render()},10000);
+  const done=k=>s=>{if(!s.metadata.fromCache){st.ready[k]=true;if(k==="res")clearTimeout(timer)}};
+  const fail=k=>()=>{st.ready[k]=true;clearTimeout(timer);render()};
+  db.doc("config/geral").onSnapshot(s=>{st.cfg=s.exists?s.data():null;done("cfg")(s);render()},fail("cfg"));
+  db.collection("res").onSnapshot(s=>{const o={};for(const d of s.docs)o[d.id]=d.data();st.res=o;done("res")(s);render()},fail("res"));
+  db.collection("partidas").onSnapshot(s=>{st.par=s.docs.map(d=>Object.assign({id:d.id},d.data()));done("par")(s);render()},fail("par"));
+  db.collection("mods").onSnapshot(s=>{const o={};for(const d of s.docs)o[d.id]=d.data();st.cm=o;done("cm")(s);render()},fail("cm"));
+  db.collection("agenda").onSnapshot(s=>{const o={};for(const d of s.docs)o[d.id]=d.data();st.ag=o;done("ag")(s);render()},fail("ag"));
+  db.collection("penal").onSnapshot(s=>{st.pen=s.docs.map(d=>Object.assign({id:d.id},d.data()));done("pen")(s);render()},fail("pen"));
+  db.collection("avisos").orderBy("ts","desc").limit(20).onSnapshot(s=>{st.av=s.docs.map(d=>Object.assign({id:d.id},d.data()));done("av")(s);render()},fail("av"));
+  render(true)})();
+}
+</script>
+</body>
+</html>
