@@ -1819,11 +1819,15 @@ const ACT={
       ${parts(p.mod).length>1?`<section class="cfgs"><h3>Ligação na chave</h3><p class="mut">Quando a turma vem de outro jogo (vencedor ou perdedor), por exemplo uma folga que entra mais à frente. Se escolher uma ligação, ela vale no lugar da turma acima.</p>${srcEditor(p)}</section>`:""}
       <div class="askb"><button type="button" class="btn ghost" data-cfgx>Cancelar</button><button type="button" class="btn sun" data-act="cfgsave" data-id="${eid}">Salvar alterações</button></div>
       <section class="cfgs cfgd-danger"><h3>Recomeçar ou apagar</h3><div class="cfgr">${hasData(p)&&!p.live?`<button type="button" class="btn ghost zerj" data-act="zerarj" data-id="${eid}">${IC.reset}Zerar partida</button>`:""}<button type="button" class="btn warn" data-act="delj" data-id="${eid}">Excluir jogo</button></div></section>`;
+    ["a","b"].forEach(k=>{const t=document.getElementById(`cj${k}_${id}`),l=document.getElementById(`csrc${k}_${id}`);if(t&&l)t.addEventListener("change",()=>{l.value=""})});
     d.showModal();setTimeout(()=>{const f=document.getElementById("cja_"+id);f&&f.focus()},30)},
   cfgsave:b=>{const id=b.dataset.id,p=st.par.find(x=>x.id===id);if(!p)return;let a=ti(val("cja_"+id)),bb=ti(val("cjb_"+id));const up={fa:null,fb:null,la:null,lb:null};
-    for(const k of ["a","b"]){const v=val(`csrc${k}_${id}`);if(!v)continue;const tp=v[0],sid=v.slice(2),q=st.par.find(x=>x.id===sid);if(!q)continue;up[(tp==="w"?"f":"l")+k]=sid;
-      const lo=isT(q.venc)&&isT(q.a)&&isT(q.b)?(q.venc===q.a?q.b:q.a):null,t=tp==="w"?(isT(q.venc)?q.venc:null):lo;if(k==="a")a=t;else bb=t}
-    if(a!=null&&a===bb)return toast("Escolha duas turmas diferentes",true);up.a=a;up.b=bb;if(isT(p.venc)&&p.venc!==a&&p.venc!==bb)up.venc=null;
+    const o0={a:isT(p.a)?p.a:null,b:isT(p.b)?p.b:null},sel0={a:p.fa?"w:"+p.fa:p.la?"l:"+p.la:"",b:p.fb?"w:"+p.fb:p.lb?"l:"+p.lb:""};
+    for(const k of ["a","b"]){const v=val(`csrc${k}_${id}`);if(!v)continue;const tp=v[0],sid=v.slice(2),q=st.par.find(x=>x.id===sid);if(!q)continue;
+      const mudouTurma=(k==="a"?a:bb)!==o0[k];if(mudouTurma&&v===sel0[k])continue; /* trocou a turma na mão: a turma escolhida vale e a ligação antiga sai */
+      up[(tp==="w"?"f":"l")+k]=sid;const lo=isT(q.venc)&&isT(q.a)&&isT(q.b)?(q.venc===q.a?q.b:q.a):null,t=tp==="w"?(isT(q.venc)?q.venc:null):lo;if(k==="a")a=t;else bb=t}
+    if(a!=null&&a===bb)return toast("Escolha duas turmas diferentes",true);up.a=a;up.b=bb;
+    if(p.folga){up.venc=isT(a)?a:isT(bb)?bb:null}else if(isT(p.venc)&&p.venc!==a&&p.venc!==bb)up.venc=null;
     document.getElementById("cfgd").close();return w(()=>st.db.doc("partidas/"+id).update(up),"Ajustes do jogo salvos")},
   setsrc:b=>{const id=b.dataset.id,p=st.par.find(x=>x.id===id);if(!p)return;const up={fa:null,fb:null,la:null,lb:null};
     for(const k of ["a","b"]){const v=val(`src${k}_${id}`);if(!v)continue;const [tp,sid]=[v[0],v.slice(2)],q=st.par.find(x=>x.id===sid);if(!q)continue;
