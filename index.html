@@ -842,7 +842,7 @@ button.livechip{font:inherit;cursor:pointer;border:1px solid transparent}button.
 .loc-quadra{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Crect x='3' y='5' width='18' height='14' rx='1'/%3E%3Cpath d='M12 5v14'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E")}
 .loc-patio{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 3v4M5 7l2 2M19 7l-2 2'/%3E%3Ccircle cx='12' cy='13' r='4'/%3E%3Cpath d='M3 21h18'/%3E%3C/svg%3E")}
 .loc-salao{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M3 10 12 4l9 6v10H3z'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E")}
-.shareb{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;width:100%}.shareb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.podsh{width:auto;margin:14px 0 4px;padding:0 22px}@media(max-width:520px){.podsh{width:100%}}.shareb{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;width:100%}.shareb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 .bld{display:grid;gap:12px}.bstep{display:flex;gap:10px;align-items:flex-start;margin-top:6px}.bstep h4{margin:2px 0;font-size:16px}.bstep h4 small{font-weight:600;color:var(--mut)}.bstep p{margin:0;font-size:14px}
 .bchips{display:flex;flex-wrap:wrap;gap:8px}.bchip{font:inherit;font-weight:700;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:4px 12px 4px 6px;border-radius:99px;border:2px dashed var(--line);background:transparent;color:var(--mut);cursor:pointer;transition:transform .15s}
 .bchip.on{border-style:solid;border-color:var(--g1,#41b649);background:var(--card);color:var(--ink)}.bchip:not(.on) .badge{filter:grayscale(1);opacity:.5}.bchip:active{transform:scale(.95)}
@@ -986,9 +986,10 @@ const faixa=s=>s.i===s.f?fmt(s.i):fmt(s.i)+" às "+fmt(s.f);
 const dia=d=>(DIAS.find(x=>x.d===d)||{}).c||d;
 const isT=v=>Number.isInteger(v)&&v>=0&&v<12;
 const hex=v=>typeof v==="string"&&/^#[0-9a-f]{6}$/i.test(v);
-const TNONE={img:null,s:"?",p:"",c:["#6b7280","#9ca3af","#d1d5db","#f3f4f6"],w:[25,25,25,25]};
+const IGN=v=>typeof v==="string"?v.trim().replace(/^.*instagram\.com\//i,"").replace(/[/?#].*$/,"").replace(/^@+/,"").replace(/[^A-Za-z0-9._]/g,"").slice(0,30):"";
+const TNONE={img:null,s:"?",p:"",ig:"",c:["#6b7280","#9ca3af","#d1d5db","#f3f4f6"],w:[25,25,25,25]};
 function TX(i){if(!isT(i))return TNONE;const d=DEFT[i],t=st.cfg&&Array.isArray(st.cfg.tx)?st.cfg.tx[i]:null;if(!t||typeof t!=="object")return d;
-  return{img:typeof t.img==="string"&&/^[A-Za-z0-9_-]{8,64}$/.test(t.img)?t.img:null,s:typeof t.s==="string"&&t.s.trim()?t.s.trim().slice(0,8):d.s,p:typeof t.p==="string"?t.p.trim().slice(0,40):d.p,c:[0,1,2,3].map(k=>Array.isArray(t.c)&&hex(t.c[k])?t.c[k]:d.c[k]),w:[0,1,2,3].map(k=>Array.isArray(t.w)&&Number.isFinite(+t.w[k])&&+t.w[k]>=0?+t.w[k]:d.w[k])}}
+  return{img:typeof t.img==="string"&&/^[A-Za-z0-9_-]{8,64}$/.test(t.img)?t.img:null,s:typeof t.s==="string"&&t.s.trim()?t.s.trim().slice(0,8):d.s,p:typeof t.p==="string"?t.p.trim().slice(0,40):d.p,ig:IGN(t.ig),c:[0,1,2,3].map(k=>Array.isArray(t.c)&&hex(t.c[k])?t.c[k]:d.c[k]),w:[0,1,2,3].map(k=>Array.isArray(t.w)&&Number.isFinite(+t.w[k])&&+t.w[k]>=0?+t.w[k]:d.w[k])}}
 const tn=i=>{if(!isT(i))return"A definir";const t=TX(i);return t.p?`${t.s} - ${t.p}`:"Turma "+t.s};
 const tc=i=>isT(i)?TX(i).c[0]:"transparent";
 const lum=h=>{const n=parseInt(h.slice(1),16),f=v=>{v/=255;return v<=.03928?v/12.92:((v+.055)/1.055)**2.4};return .2126*f(n>>16)+.7152*f(n>>8&255)+.0722*f(n&255)};
@@ -1242,6 +1243,58 @@ async function shareTeam(i){if(!isT(i))return;toast("Montando a imagem da turma�
   try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:`Interclasse 2026 · ${t.s}`,text});return}}catch(e){if(e&&e.name==="AbortError")return}
   await baixar(fname,blob);try{await navigator.clipboard.writeText(text)}catch(e){}
   toast("Imagem salva. Envie pelo WhatsApp ou poste no Instagram. O texto com o link foi copiado.")}
+async function teamImg(i){try{const tmp=document.createElement("div");tmp.innerHTML=badge(i,10);const im=tmp.querySelector("img");if(!im)return null;const img=new Image();img.crossOrigin="anonymous";await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=im.src;setTimeout(rej,5000)});return img}catch(e){return null}}
+async function sharePod(id){const m=MODX(id);if(!m)return;const q=R(id);if(!isT(q.ouro))return toast("O pódio desta modalidade ainda não foi lançado.",true);
+  toast("Montando o card do pódio…");try{await document.fonts.load("700 60px Poppins");await document.fonts.load("600 30px Poppins")}catch(e){}
+  const W=1080,Hh=1350,c=document.createElement("canvas");c.width=W;c.height=Hh;const g=c.getContext("2d"),F=(w,z)=>`${w} ${z}px Poppins, Arial, sans-serif`;
+  const rr=(x,y,w,h,r,bot=true)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,bot?r:0);g.arcTo(x+w,y+h,x,y+h,bot?r:0);g.arcTo(x,y+h,x,y,bot?r:0);g.arcTo(x,y,x+w,y,r);g.closePath()};
+  const fit=(txt,max)=>{let s2=txt;while(g.measureText(s2).width>max&&s2.length>2)s2=s2.slice(0,-2).trimEnd()+"…";return s2};
+  const wrap=(txt,max,lines)=>{const ws=txt.split(/\s+/),out=[];let cur="";for(const w0 of ws){const t2=cur?cur+" "+w0:w0;if(g.measureText(t2).width<=max||!cur)cur=t2;else{out.push(cur);cur=w0}}if(cur)out.push(cur);if(out.length>lines){const rest=out.slice(lines-1).join(" ");out.length=lines-1;out.push(fit(rest,max))}return out};
+  // fundo verde NAVE
+  const bg=g.createLinearGradient(0,0,0,Hh);bg.addColorStop(0,"#1f5a23");bg.addColorStop(1,"#0f2e12");g.fillStyle=bg;g.fillRect(0,0,W,Hh);
+  g.strokeStyle="rgba(255,255,255,.07)";g.lineWidth=6;g.strokeRect(40,40,W-80,Hh-80);g.beginPath();g.arc(W/2,Hh-140,230,Math.PI,0);g.stroke();g.beginPath();g.moveTo(40,Hh/2);g.lineTo(W-40,Hh/2);g.stroke();
+  // brilho atrás do 1º
+  const gl=g.createRadialGradient(W/2,690,20,W/2,690,420);gl.addColorStop(0,"rgba(255,216,77,.30)");gl.addColorStop(1,"rgba(255,216,77,0)");g.fillStyle=gl;g.fillRect(0,250,W,900);
+  // selo
+  g.font=F(700,34);const tag="INTERCLASSE 2026",tw0=g.measureText(tag).width;g.font=F(600,30);const tag2="  ·  ETE Cícero Dias",tw1=g.measureText(tag2).width;
+  const pw=tw0+tw1+72,px=(W-pw)/2;rr(px,74,pw,72,36);g.fillStyle="#111";g.fill();g.textBaseline="middle";g.textAlign="left";g.font=F(700,34);g.fillStyle="#ffd84d";g.fillText(tag,px+36,111);g.font=F(600,30);g.fillStyle="#fff";g.fillText(tag2,px+36+tw0,111);
+  // título
+  g.textAlign="center";g.textBaseline="alphabetic";g.fillStyle="#ffd84d";g.font=F(700,36);g.fillText("P Ó D I O",W/2,222);
+  g.fillStyle="#fff";g.font=F(700,82);const tl=wrap(m.n,W-160,2);tl.forEach((l,k)=>g.fillText(l,W/2,310+k*88));
+  const LOCT={quadra:"Quadra",patio:"Pátio",salao:"Salão"},sub=[CAT[m.c],LOCT[locOf(m)]].filter(Boolean).join("  ·  ");
+  g.fillStyle="rgba(255,255,255,.75)";g.font=F(600,32);g.fillText(fit(sub,W-160),W/2,310+(tl.length-1)*88+62);
+  // pódio: 2º, 1º, 3º
+  const base=1170,cwid=300,gap=30,x0=(W-(cwid*3+gap*2))/2;
+  const cols=[[q.prata,2,250,"#c9d1d9",88],[q.ouro,1,330,"#ffd84d",108],[q.bronze,3,190,"#d68a4c",80]];
+  for(let k=0;k<3;k++){const[t,n,h,mc,R0]=cols[k],x=x0+k*(cwid+gap),cx=x+cwid/2,top=base-h,has=isT(t),T=TX(t),C=has?T.c:["#3c4a3e","#56655a","#6b7a6e","#8a988d"],ink=has?inkOn(C[0]):"#fff";
+    // bloco
+    g.save();g.shadowColor="rgba(0,0,0,.35)";g.shadowBlur=30;g.shadowOffsetY=12;rr(x,top,cwid,h,26,false);g.fillStyle=C[0];g.fill();g.restore();
+    g.save();rr(x,top,cwid,h,26,false);g.clip();g.fillStyle=C[1];g.globalAlpha=.55;g.fillRect(x,top+h-34,cwid,34);g.globalAlpha=1;g.fillStyle=mc;g.fillRect(x,top,cwid,16);g.restore();
+    g.textAlign="center";g.textBaseline="alphabetic";g.fillStyle=ink;g.font=F(700,n===1?118:96);g.font=F(700,n===1?118:n===2?96:86);g.fillText(n+"º",cx,top+(n===1?150:n===2?124:110));
+    if(has&&T.ig){g.font=F(600,26);if(g.measureText("@"+T.ig).width>cwid-28)g.font=F(600,21);g.fillStyle=ink;g.globalAlpha=.92;g.fillText(fit("@"+T.ig,cwid-28),cx,top+h-48);g.globalAlpha=1}
+    // nome da turma
+    g.fillStyle="#fff";g.font=F(700,n===1?70:60);g.fillText(has?T.s:"A definir",cx,top-58);
+    if(has&&T.p){g.font=F(600,27);if(g.measureText(T.p).width>cwid-10)g.font=F(600,23);g.fillStyle="rgba(255,255,255,.82)";g.fillText(fit(T.p,cwid-10),cx,top-20)}
+    // brasão
+    const cy=top-58-(n===1?70:60)-20-R0;g.beginPath();g.arc(cx,cy,R0+14,0,7);g.fillStyle=mc;g.fill();g.beginPath();g.arc(cx,cy,R0+7,0,7);g.fillStyle=C[1];g.fill();
+    g.save();g.beginPath();g.arc(cx,cy,R0,0,7);g.fillStyle="#fff";g.fill();g.clip();let ok=false;
+    if(has){const img=await teamImg(t);if(img){try{const s0=Math.max(R0*2/img.width,R0*2/img.height);g.drawImage(img,cx-img.width*s0/2,cy-img.height*s0/2,img.width*s0,img.height*s0);g.getImageData(cx,cy,1,1);ok=true}catch(e){ok=false}}}
+    if(!ok){g.fillStyle=C[0];g.fillRect(cx-R0,cy-R0,R0*2,R0*2);g.fillStyle=ink;g.font=F(700,Math.round(R0*.78));g.textBaseline="middle";g.fillText(has?T.s:"?",cx,cy+4);g.textBaseline="alphabetic"}
+    g.restore();
+    // medalha
+    g.beginPath();g.arc(cx+R0*.72,cy-R0*.72,30,0,7);g.fillStyle=mc;g.fill();g.lineWidth=5;g.strokeStyle="#0f2e12";g.stroke();g.fillStyle="#111";g.font=F(700,32);g.textBaseline="middle";g.fillText(String(n),cx+R0*.72,cy-R0*.72+2);g.textBaseline="alphabetic"}
+  g.fillStyle="rgba(255,255,255,.28)";g.fillRect(50,base,W-100,4);
+  // rodapé
+  const host=(location.host||"")+location.pathname.replace(/index\.html$/,"").replace(/\/$/,"");const showHost=/^https?:/.test(location.protocol)&&host&&!/claude|localhost|usercontent/i.test(host);
+  g.textAlign="center";g.textBaseline="middle";g.fillStyle="#fff";g.font=F(700,32);g.fillText(showHost?fit("Placar ao vivo: "+host,W-140):"Acompanhe o placar ao vivo no site do Interclasse",W/2,1252);
+  g.fillStyle="rgba(255,255,255,.6)";g.font=F(600,24);g.fillText("Parabéns às turmas! #Interclasse2026 #NAVERecife",W/2,1298);
+  const blob=await new Promise(res=>c.toBlob(res,"image/png"));if(!blob)return toast("Não foi possível montar a imagem.",true);
+  const slug=norm(m.n).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),fname=`podio-${slug||m.id}.png`,file=new File([blob],fname,{type:"image/png"}),url=location.href.split("#")[0]+"#m-"+m.id;
+  const lin=(t,e)=>isT(t)?`${e} ${TX(t).s}${TX(t).p?" ("+TX(t).p+")":""}${TX(t).ig?" @"+TX(t).ig:""}`:"";
+  const text=[`🏆 Pódio de ${m.n} no Interclasse 2026!`,lin(q.ouro,"🥇"),lin(q.prata,"🥈"),lin(q.bronze,"🥉"),`Veja tudo no site: ${url}`,"#Interclasse2026 #NAVERecife"].filter(Boolean).join("\n");
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.clipboard.writeText(text)}catch(e){}await navigator.share({files:[file],title:`Pódio · ${m.n}`,text});return}}catch(e){if(e&&e.name==="AbortError")return}
+  await baixar(fname,blob);try{await navigator.clipboard.writeText(text)}catch(e){}
+  toast("Card salvo. Poste no Instagram ou envie no WhatsApp. A legenda com as @ das turmas foi copiada.")}
 function vTelao(id,MK){const both=p=>isT(p.a)&&isT(p.b);const CTL=st.can&&(st.edit||MK)&&st.tvctl!==false;
   let L=st.par.filter(p=>p.live&&both(p)&&MODX(p.mod));const one=id&&st.par.find(p=>p.id===id);if(one)L=[one];
   const nLive=st.par.filter(p=>p.live&&both(p)).length;
@@ -1426,6 +1479,7 @@ function vMod(id){const m=MODX(id);if(!m)return`<p>${APAG().some(x=>x.id===id)?"
   <ul class="hrs">${H(m).map(s=>`<li class="${ativo(m,s)?"":"cx"}"><b>${dia(s.d)}, ${faixa(s)}</b> · ${esc(s.l)}${s.x?" · "+esc(s.x):""}${ativo(m,s)?"":" · cancelado"}${mudou(m,s)?" · alterado":""}</li>`).join("")}</ul>
   ${r.obs?`<p class="obs">${esc(r.obs)}</p>`:""}${notes()}
   <h3>Pódio</h3><div class="podio">${P.map(([k,l,t])=>`<div class="pd ${k}">${badge(t,40)}<span>${l}</span><strong>${isT(t)?esc(TX(t).s):"A definir"}</strong></div>`).join("")}</div>
+  ${isT(r.ouro)?`<button class="btn sun shareb podsh" type="button" data-act="sharepod" data-id="${m.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Compartilhar pódio</button>`:""}
   ${ed}<h3 style="margin-bottom:12px">Chave</h3>${chave(m)}`}
 
 function nextSlot(m){const now=Date.now();return H(m).filter(z=>!z.cancel&&t1(z)>now).sort((x,y)=>t0(x)-t0(y))[0]||null}
@@ -1479,7 +1533,7 @@ function vOrg(){if(!st.can)return`<p>Esta área é só para a organização.</p>
     <p class="mut" style="margin:0;font-size:14px">A participação conta para cada turma que aparece na chave de uma modalidade não cancelada.</p><div class="acts"><button class="btn sun" data-act="savecfg">Salvar pontuação</button></div>`);
   const turmas=sec("o-turmas","Turmas",`<p class="mut" style="margin:0">Toque numa turma para editar sigla, personagem, imagem e cores. Depois, toque em <b>Salvar turmas</b>. A imagem é salva na hora, assim que enviada.</p>
     <div class="txgrid">${Array.from({length:12},(_,i)=>{const t=TX(i),k="tx-"+i;return`<details class="txi" data-id="${k}" ${st.open.has(k)?"open":""}><summary>${badge(i,40)}<span class="ell"><b>${esc(t.s)}</b> ${esc(t.p||"")}</span><span class="chev" aria-hidden="true"></span></summary>
-      <div class="tbody"><div class="fr2"><label>Turma<input id="x_s_${i}" maxlength="8" value="${esc(t.s)}"></label><label>Personagem<input id="x_p_${i}" maxlength="40" value="${esc(t.p)}"></label></div>
+      <div class="tbody"><div class="fr2"><label>Turma<input id="x_s_${i}" maxlength="8" value="${esc(t.s)}"></label><label>Personagem<input id="x_p_${i}" maxlength="40" value="${esc(t.p)}"></label></div><label>Instagram da turma <small class="mut">(opcional, aparece no card do pódio)</small><input id="x_ig_${i}" maxlength="60" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="@perfil.da.turma" value="${t.ig?"@"+esc(t.ig):""}"></label>
       <label>Brasão ou foto<input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" data-up="${i}" ${st.assets?"":"disabled"}></label>${t.img?`<button class="btn warn" data-act="rmimg" data-id="${i}">Remover imagem</button>`:""}
       <div class="fr2"><label>Cor do fundo<span class="cin"><input type="color" id="x_c_${i}_0" value="${t.c[0].toLowerCase()}"></span></label><label>Cor do contorno<span class="cin"><input type="color" id="x_c_${i}_1" value="${t.c[1].toLowerCase()}"></span></label></div></div></details>`}).join("")}</div>
     <div class="acts"><button class="btn sun" data-act="savecfg">Salvar turmas</button></div>`);
@@ -1608,7 +1662,7 @@ function showUndo(id,side,d){const u=document.getElementById("undo");if(!u)retur
 async function w(fn,ok){if(!st.db)return toast("Sem conexão com o placar.",true);st.busy=true;setSv("saving");try{await fn();setSv("ok");if(ok)toast(ok)}catch(e){setSv("err");toast(e&&e.code==="invalid_argument"?"Você não tem permissão para editar. Entre com a senha da organização.":e&&e.code==="quota_exceeded"?"Limite de dados atingido.":"Não deu para salvar. Confira a internet e tente de novo.",true)}st.busy=false;render(true)}
 function readCfg(){const has=!!document.getElementById("x_s_0");
   const tx=Array.from({length:12},(_,i)=>{const d=TX(i);if(!has)return Object.assign({},d,{c:d.c.slice(),w:d.w.slice()});
-    return{img:d.img,s:val("x_s_"+i).trim().slice(0,8)||d.s,p:val("x_p_"+i).trim().slice(0,40),c:[0,1,2,3].map(k=>{const v=val(`x_c_${i}_${k}`).toUpperCase();return hex(v)?v:d.c[k]}),w:d.w.slice()}});
+    return{img:d.img,s:val("x_s_"+i).trim().slice(0,8)||d.s,p:val("x_p_"+i).trim().slice(0,40),ig:IGN(val("x_ig_"+i)),c:[0,1,2,3].map(k=>{const v=val(`x_c_${i}_${k}`).toUpperCase();return hex(v)?v:d.c[k]}),w:d.w.slice()}});
   const P=PTS(),ce=document.getElementById("cor_ev"),cor=ce?ce.value:(st.cfg&&st.cfg.cor)||null;return{tx,cor:cor&&cor.toLowerCase()!==BASE_COR?cor:null,pontos:{o:num(val("p_o"),P.o),p:num(val("p_p"),P.p),b:num(val("p_b"),P.b),part:num(val("p_pt"),P.part)}}}
 async function shrink(f){if(f.type==="image/svg+xml"||f.type==="image/gif")return f;
   try{const bm=await createImageBitmap(f),m=480,k=Math.min(1,m/Math.max(bm.width,bm.height)),cv=document.createElement("canvas");cv.width=Math.round(bm.width*k);cv.height=Math.round(bm.height*k);cv.getContext("2d").drawImage(bm,0,0,cv.width,cv.height);
@@ -1840,7 +1894,7 @@ const ACT={
     return w(async()=>{if(st.db.bulk)await st.db.bulk(rows);else for(const r of rows)await st.db.doc(r.path).set(r.data)},`${rows.length} itens importados`)},
   tvmore:()=>{st.tvmore=!st.tvmore;try{localStorage.setItem("ic-tvmore",st.tvmore?"1":"0")}catch(e){}render(true)},
   tvctl:()=>{st.tvctl=st.tvctl===false;render(true)},
-  share:b=>shareTeam(+b.dataset.id),
+  share:b=>shareTeam(+b.dataset.id),sharepod:b=>sharePod(b.dataset.id),
   rotok:()=>{st.rotok=1;try{localStorage.setItem("ic-rotok","1")}catch(e){}render(true)},
   golive:()=>{const go=()=>{const e=document.querySelector(".livewrap");if(e){e.scrollIntoView({behavior:RM?"auto":"smooth",block:"start"});e.classList.remove("flashsec");void e.offsetWidth;e.classList.add("flashsec")}else toast("Nenhum jogo ao vivo agora. Quando um jogo começar, ele aparece no topo da aba Placar.")};
     if(location.hash!=="#inicio"&&location.hash!==""){location.hash="#inicio";setTimeout(go,350)}else go()},
