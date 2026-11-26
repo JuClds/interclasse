@@ -1588,10 +1588,10 @@ async function sharePod(id,fmt){const ST=fmt==="story",TT=ST?150:0,BB=ST?360:0;c
     else{const sc0=Math.max(W/ph.width,Hh/ph.height),dw=ph.width*sc0,dh=ph.height*sc0;g.drawImage(ph,(W-dw)/2,Math.min(0,(Hh-dh)*.35),dw,dh)}
     // verde em multiplicação: branco não altera a foto, verde tinge suavemente
     g.save();g.globalCompositeOperation="multiply";
-    const gm=g.createLinearGradient(0,0,0,Hh);gm.addColorStop(0,"#5f9a63");gm.addColorStop(.26,"#ffffff");gm.addColorStop(.52,"#ffffff");gm.addColorStop(.78,"#8fc093");gm.addColorStop(1,"#4f8a54");g.fillStyle=gm;g.fillRect(0,0,W,Hh);g.restore();
+    const gm=g.createLinearGradient(0,0,0,Hh);gm.addColorStop(0,"#3d7442");gm.addColorStop(.3,"#ffffff");gm.addColorStop(.56,"#ffffff");gm.addColorStop(.8,"#7fb384");gm.addColorStop(1,"#2f6535");g.fillStyle=gm;g.fillRect(0,0,W,Hh);g.restore();
     // sombra leve só para dar leitura aos textos
-    const gt=g.createLinearGradient(0,0,0,380+TT);gt.addColorStop(0,"rgba(8,26,10,.5)");gt.addColorStop(1,"rgba(8,26,10,0)");g.fillStyle=gt;g.fillRect(0,0,W,380+TT);
-    const gb=g.createLinearGradient(0,820+BB,0,Hh);gb.addColorStop(0,"rgba(8,26,10,0)");gb.addColorStop(1,"rgba(8,26,10,.42)");g.fillStyle=gb;g.fillRect(0,820+BB,W,Hh-820-BB)}
+    const gt=g.createLinearGradient(0,0,0,470+TT);gt.addColorStop(0,"rgba(8,26,10,.82)");gt.addColorStop(.45,"rgba(8,26,10,.42)");gt.addColorStop(1,"rgba(8,26,10,0)");g.fillStyle=gt;g.fillRect(0,0,W,470+TT);
+    const gb=g.createLinearGradient(0,760+BB,0,Hh);gb.addColorStop(0,"rgba(8,26,10,0)");gb.addColorStop(.5,"rgba(8,26,10,.55)");gb.addColorStop(1,"rgba(8,26,10,.9)");g.fillStyle=gb;g.fillRect(0,760+BB,W,Hh-760-BB)}
   else{// brilho atrás do 1º
   const gy=690+BB*.8,gl=g.createRadialGradient(W/2,gy,20,W/2,gy,ST?520:420);gl.addColorStop(0,"rgba(255,216,77,.30)");gl.addColorStop(1,"rgba(255,216,77,0)");g.fillStyle=gl;g.fillRect(0,0,W,Hh)}
   // selo
@@ -1599,18 +1599,13 @@ async function sharePod(id,fmt){const ST=fmt==="story",TT=ST?150:0,BB=ST?360:0;c
   const pw=tw0+tw1+72,px=(W-pw)/2;rr(px,74+TT,pw,72,36);g.fillStyle="#111";g.fill();g.textBaseline="middle";g.textAlign="left";g.font=F(700,34);g.fillStyle="#ffd84d";g.fillText(tag,px+36,111+TT);g.font=F(600,30);g.fillStyle="#fff";g.fillText(tag2,px+36+tw0,111+TT);
   // título
   g.textAlign="center";g.textBaseline="alphabetic";const LOCT={quadra:"Quadra",patio:"Pátio",salao:"Salão"},sub=[CAT[m.c],LOCT[locOf(m)]].filter(Boolean).join("  ·  ");
-  if(PH){g.save();g.shadowColor="rgba(0,0,0,.6)";g.shadowBlur=20;g.fillStyle="#ffd84d";g.font=F(700,32);g.fillText("P Ó D I O",W/2,214+TT);g.fillStyle="#fff";g.font=F(700,74);g.fillText(fit(m.n,W-140),W/2,292+TT);g.fillStyle="rgba(255,255,255,.9)";g.font=F(600,30);g.fillText(fit(sub,W-160),W/2,338+TT);g.restore();
-    const CT=TX(q.ouro),cc=CT.c[0],ci=inkOn(cc),ctx=`🏆  ${CT.s}${CT.p?" · "+CT.p:""}`;g.font=F(700,30);const cw=Math.min(W-160,g.measureText(ctx).width+56),cxp=(W-cw)/2;
-    g.save();g.shadowColor="rgba(0,0,0,.35)";g.shadowBlur=16;rr(cxp,368+TT,cw,58,29);g.fillStyle=cc;g.fill();g.restore();g.lineWidth=3;g.strokeStyle="#ffd84d";rr(cxp,368+TT,cw,58,29);g.stroke();
-    g.fillStyle=ci;g.textBaseline="middle";g.fillText(fit(ctx,cw-40),W/2,398+TT);g.textBaseline="alphabetic"}
+  if(PH){g.save();g.shadowColor="rgba(0,0,0,.6)";g.shadowBlur=20;g.fillStyle="#ffd84d";g.font=F(700,32);g.fillText("P Ó D I O",W/2,214+TT);g.fillStyle="#fff";g.font=F(700,74);g.fillText(fit(m.n,W-140),W/2,292+TT);g.restore()}
   else{g.fillStyle="#ffd84d";g.font=F(700,36);g.fillText("P Ó D I O",W/2,222+TT);
   g.fillStyle="#fff";g.font=F(700,82);const tl=wrap(m.n,W-160,2);tl.forEach((l,k)=>g.fillText(l,W/2,310+TT+k*88));
-  g.fillStyle="rgba(255,255,255,.75)";g.font=F(600,32);g.fillText(fit(sub,W-160),W/2,310+TT+(tl.length-1)*88+62);
-    if(ST){const yc=310+TT+(tl.length-1)*88+100,CT=TX(q.ouro),cc=CT.c[0],ci=inkOn(cc),ctx=`🏆  Campeã: ${CT.s}${CT.p?" · "+CT.p:""}`;g.font=F(700,32);const cw=Math.min(W-160,g.measureText(ctx).width+60),cxp=(W-cw)/2;
-      g.save();g.shadowColor="rgba(0,0,0,.35)";g.shadowBlur=16;rr(cxp,yc,cw,64,32);g.fillStyle=cc;g.fill();g.restore();g.lineWidth=3;g.strokeStyle="#ffd84d";rr(cxp,yc,cw,64,32);g.stroke();g.fillStyle=ci;g.textBaseline="middle";g.fillText(fit(ctx,cw-40),W/2,yc+33);g.textBaseline="alphabetic"}}
+}
   // pódio: 2º, 1º, 3º
-  const base=(PH?1180:1170)+BB,cwid=300,gap=30,x0=(W-(cwid*3+gap*2))/2;
-  const cols=PH?[[q.prata,2,130,"#c9d1d9",58],[q.ouro,1,180,"#ffd84d",72],[q.bronze,3,100,"#d68a4c",54]]:[[q.prata,2,250,"#c9d1d9",88],[q.ouro,1,330,"#ffd84d",108],[q.bronze,3,190,"#d68a4c",80]];
+  const base=(PH?1172:1162)+BB,cwid=PH?250:270,gap=PH?18:22,x0=(W-(cwid*3+gap*2))/2;
+  const cols=PH?[[q.prata,2,124,"#c9d1d9",54],[q.ouro,1,170,"#ffd84d",66],[q.bronze,3,96,"#d68a4c",50]]:[[q.prata,2,250,"#c9d1d9",88],[q.ouro,1,330,"#ffd84d",108],[q.bronze,3,190,"#d68a4c",80]];
   for(let k=0;k<3;k++){const[t,n,h,mc,R0]=cols[k],x=x0+k*(cwid+gap),cx=x+cwid/2,top=base-h,has=isT(t),T=TX(t),C=has?T.c:["#3c4a3e","#56655a","#6b7a6e","#8a988d"],ink=has?inkOn(C[0]):"#fff";
     // bloco
     g.save();g.shadowColor="rgba(0,0,0,.35)";g.shadowBlur=30;g.shadowOffsetY=12;rr(x,top,cwid,h,26,false);g.fillStyle=C[0];g.fill();g.restore();
@@ -1618,7 +1613,7 @@ async function sharePod(id,fmt){const ST=fmt==="story",TT=ST?150:0,BB=ST?360:0;c
     g.textAlign="center";g.textBaseline="alphabetic";g.fillStyle=ink;g.font=F(700,n===1?118:96);if(PH){g.font=F(700,n===1?84:n===2?68:58);g.fillText(n+"º",cx,top+(n===1?104:n===2?84:76))}else{g.font=F(700,n===1?118:n===2?96:86);g.fillText(n+"º",cx,top+(n===1?150:n===2?124:110))}
     if(has&&T.ig&&(!PH||h>=130)){g.font=F(600,PH?22:26);if(g.measureText("@"+T.ig).width>cwid-28)g.font=F(600,PH?19:21);g.fillStyle=ink;g.globalAlpha=.92;g.fillText(fit("@"+T.ig,cwid-28),cx,top+h-(PH?24:48));g.globalAlpha=1}
     // nome da turma
-    const NF=PH?(n===1?56:48):(n===1?70:60),NY=PH?24:58;g.fillStyle="#fff";g.font=F(700,NF);g.fillText(has?T.s:"A definir",cx,top-NY);
+    const NF=PH?(n===1?56:48):(n===1?70:60),NY=PH?24:58;g.fillStyle="#fff";g.font=F(700,NF);g.fillText(fit(has?T.s:"A definir",cwid-6),cx,top-NY);
     if(has&&T.p&&!PH){g.font=F(600,27);if(g.measureText(T.p).width>cwid-10)g.font=F(600,23);g.fillStyle="rgba(255,255,255,.82)";g.fillText(fit(T.p,cwid-10),cx,top-20)}
     // brasão
     const cy=top-NY-NF-(PH?16:20)-R0;g.beginPath();g.arc(cx,cy,R0+14,0,7);g.fillStyle=mc;g.fill();g.beginPath();g.arc(cx,cy,R0+7,0,7);g.fillStyle=C[1];g.fill();
@@ -1628,11 +1623,12 @@ async function sharePod(id,fmt){const ST=fmt==="story",TT=ST?150:0,BB=ST?360:0;c
     g.restore();
     // medalha
     g.beginPath();g.arc(cx+R0*.72,cy-R0*.72,30,0,7);g.fillStyle=mc;g.fill();g.lineWidth=5;g.strokeStyle="#0f2e12";g.stroke();g.fillStyle="#111";g.font=F(700,32);g.textBaseline="middle";g.fillText(String(n),cx+R0*.72,cy-R0*.72+2);g.textBaseline="alphabetic"}
-  g.fillStyle=PH?"rgba(255,255,255,.5)":"rgba(255,255,255,.28)";g.fillRect(50,base,W-100,4);if(PH){g.shadowColor="rgba(0,0,0,.6)";g.shadowBlur=12}
+  g.fillStyle=PH?"rgba(255,255,255,.5)":"rgba(255,255,255,.28)";g.fillRect(x0-30,base,cwid*3+gap*2+60,4);if(PH){g.shadowColor="rgba(0,0,0,.6)";g.shadowBlur=12}
   // rodapé
   const host=(location.host||"")+location.pathname.replace(/index\.html$/,"").replace(/\/$/,"");const showHost=/^https?:/.test(location.protocol)&&host&&!/claude|localhost|usercontent/i.test(host);
-  g.textAlign="center";g.textBaseline="middle";g.fillStyle="#fff";g.font=F(700,32);g.fillText(showHost?fit("Placar ao vivo: "+host,W-140):"Acompanhe o placar ao vivo no site do Interclasse",W/2,FY);
-  g.fillStyle="rgba(255,255,255,.6)";g.font=F(600,24);g.fillText("Parabéns às turmas! #Interclasse2026 #NAVERecife",W/2,FY+46);
+  const site=showHost?host:"internave2026.vercel.app";g.textAlign="center";g.textBaseline="middle";g.fillStyle="#fff";g.font=F(700,32);g.fillText(fit("Acompanhe o placar ao vivo: "+site,W-120),W/2,FY);
+  g.fillStyle="rgba(255,255,255,.85)";g.font=F(600,26);g.fillText("Parabéns às turmas!",W/2,FY+48);
+
   const blob=await new Promise(res=>c.toBlob(res,"image/png"));if(!blob)return toast("Não foi possível montar a imagem.",true);
   const slug=norm(m.n).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),fname=`podio-${slug||m.id}-${ST?"stories":"feed"}.png`,file=new File([blob],fname,{type:"image/png"}),url=location.href.split("#")[0]+"#m-"+m.id;
   const lin=(t,e)=>isT(t)?`${e} ${TX(t).s}${TX(t).p?" ("+TX(t).p+")":""}${TX(t).ig?" @"+TX(t).ig:""}`:"";
