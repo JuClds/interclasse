@@ -13,6 +13,10 @@ window.INTERCLASSE_CONFIG = {
   // Quem usa o site só digita a SENHA; este e-mail fica escondido aqui.
   emailOrganizacao: "organizacao@interclasse.app",
 
+  // E-mail da ADMINISTRADORA: só ela vê e altera a página Organização.
+  // Crie esse usuário em Authentication > Users (a senha é definida por você lá).
+  emailAdmin: "ju@inter.com",
+
   // Nome do bucket de imagens criado pelo setup.sql
   bucket: "brasoes"
 };

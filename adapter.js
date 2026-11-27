@@ -27,7 +27,7 @@
   async function loadAll() {
     const all = [];
     for (let from = 0; ; from += 1000) {
-      const { data, error } = await sb.from("docs").select("path,data").range(from, from + 999);
+      const { data, error } = await sb.from("docs").select("path,data").neq("col", "backup").range(from, from + 999);
       if (error) throw error;
       all.push(...data);
       if (data.length < 1000) break;
@@ -115,7 +115,14 @@
   let session = null;
   const ready = sb.auth.getSession().then(r => { session = r.data.session; }).catch(() => {});
   const logged = async () => { await ready; return !!session; };
-  const user = { canEdit: logged, isOwner: logged, can: logged, id: async () => { await ready; return session ? session.user.id : null; } };
+  // Administradora: só ela vê e altera a página Organização (as regras do banco garantem isso)
+  const isAdmin = async () => {
+    await ready; if (!session) return false;
+    const em = String(session.user.email || "").toLowerCase();
+    if (C.emailAdmin && em === String(C.emailAdmin).toLowerCase()) return true;
+    try { const { data, error } = await sb.rpc("ic_admin_definido"); if (error) return false; return data === false; } catch (e) { return false; }
+  };
+  const user = { canEdit: logged, isOwner: isAdmin, isAdmin, can: logged, id: async () => { await ready; return session ? session.user.id : null; } };
 
   const EXT = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "image/svg+xml": "svg" };
   const assets = {
@@ -129,7 +136,7 @@
   };
 
   window.IC_AUTH = {
-    login: async pw => { const { error } = await sb.auth.signInWithPassword({ email: C.emailOrganizacao, password: pw }); if (error) throw error; },
+    login: async (pw, email) => { const { error } = await sb.auth.signInWithPassword({ email: (email && email.trim()) || C.emailOrganizacao, password: pw }); if (error) throw error; },
     logout: async () => { await sb.auth.signOut(); }
   };
   window.claude = { use: async n => n === "db" ? db : n === "user" ? user : n === "assets" ? ((await logged()) ? assets : null) : null };
