@@ -1254,6 +1254,7 @@ dialog.tmd:not([open]){display:none!important}dialog.tmd[open]{display:block!imp
 .exi{display:grid;grid-template-columns:auto minmax(0,1fr) 5.2rem;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:12px;font-weight:600;font-size:15px;margin:0}
 .exi input{width:100%;min-height:40px;text-align:right;font-variant-numeric:tabular-nums;margin:0}
 .exs{margin:10px 0 0;font-size:14px}
+.exrem{margin:0 0 12px;font-size:14px}.exrem .btn{min-height:36px;padding:4px 10px;font-size:13px;margin-left:4px}
 .exnew{margin:0 0 16px;background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:12px 16px}.exnew summary{cursor:pointer;font-weight:700;min-height:28px}
 @media(max-width:620px){.okpi{grid-template-columns:repeat(2,minmax(0,1fr))}.obr{grid-template-columns:5.6rem minmax(0,var(--gn)) minmax(0,var(--gp)) 2.8rem}.obr-n b{display:none}.oal li{grid-template-columns:auto minmax(0,1fr)}.oal li .btn{grid-column:2;justify-self:start}.exg{grid-template-columns:1fr 1fr;gap:6px}.exi{grid-template-columns:auto minmax(0,1fr) 4.4rem;gap:6px;padding:5px 6px}.exi .badge{width:24px;height:24px}.oday li{grid-template-columns:5.2rem minmax(0,1fr) 5.2rem}}
 @media(forced-colors:active){.oseg,.od-f,.okbar{forced-color-adjust:none}}
@@ -1421,9 +1422,10 @@ const pill=m=>{const[k,l]=status(m);return`<span class="pill ${k}">${k==="on"?'<
 const champ=m=>{const r=R(m.id);return isT(r.ouro)?`<span class="champ">Campeã: ${esc(TX(r.ouro).s)}</span>`:""};
 
 /* Pontos extras: rascunho em "extras" (só a organização lê) e versão aprovada em "extrapub" (todo mundo vê) */
-const EXD=[["carnaval","Estandarte de Carnaval"],["pascoa","Atividade de Páscoa"],["bandeira","Bandeira de Pernambuco"]];
+const EXD=[["carnaval","Estandarte de Carnaval"],["pascoa","Atividade de Páscoa"],["bandeira","Bandeira de Pernambuco"],["festdance","Fest Dance"]];
 const exV=d=>Array.from({length:12},(_,i)=>{const v=d&&Array.isArray(d.v)?d.v[i]:null;return Number.isFinite(v)?v:null});
-const EXL=()=>{const ids=[...EXD.map(x=>x[0])];for(const k of [...Object.keys(st.ex||{}),...Object.keys(st.exp||{})])if(!ids.includes(k))ids.push(k);return ids.map(id=>{const d=(st.ex||{})[id],q=(st.exp||{})[id],def=EXD.find(x=>x[0]===id);return{id,n:(d&&d.n)||(q&&q.n)||(def&&def[1])||"Pontuação extra",d,q,fixo:!!def}})};
+const EXL=()=>{const ids=[...EXD.map(x=>x[0])];for(const k of [...Object.keys(st.ex||{}),...Object.keys(st.exp||{})])if(!ids.includes(k))ids.push(k);return ids.map(id=>{const d=(st.ex||{})[id],q=(st.exp||{})[id],def=EXD.find(x=>x[0]===id);return{id,n:(d&&d.n)||(q&&q.n)||(def&&def[1])||"Pontuação extra",d,q,fixo:!!def,rem:!!(d&&d.removida)}}).filter(x=>!x.rem||x.q)};
+const EXR=()=>EXD.filter(([id])=>{const d=(st.ex||{})[id];return d&&d.removida&&!(st.exp||{})[id]}).map(([id,n])=>({id,n:(st.ex[id]&&st.ex[id].n)||n}));
 const exSame=(a,b)=>!!a&&!!b&&(a.n||"")===(b.n||"")&&JSON.stringify(exV(a))===JSON.stringify(exV(b));
 const exState=x=>!x.d&&!x.q?"vazio":x.q&&(!x.d||exSame(x.d,x.q))?"ok":x.q?"alt":"rasc";
 const exSrc=prev=>EXL().map(x=>prev?(x.d||x.q):x.q).filter(Boolean);
@@ -1994,7 +1996,7 @@ function teamInfo(i){const ms=st.par.filter(p=>(p.a===i||p.b===i)&&MODX(p.mod)&&
   const alive=new Set(pend.map(p=>p.mod)).size+new Set(live.map(p=>p.mod)).size;
   const nx=pend.map(p=>({p,m:MODX(p.mod),s:nextSlot(MODX(p.mod))})).filter(o=>o.s).sort((x,y)=>t0(x.s.s||x.s)-t0(y.s.s||y.s)||(x.p.r||1)-(y.p.r||1))[0]||null;
   return{ms,done,wins,losses,live,alive,nx,opp,src}}
-function tParts(i,r,pos,P){const medal=["Ouro","Prata","Bronze"];const t=TX(i),x=r.find(y=>y.i===i),I=teamInfo(i),podPts=x.o*P.o+x.p*P.p+x.b*P.b,partPts=x.part*P.part,penPts=x.pen||0,tot=Math.max(1,partPts+podPts),k="tm-"+i;
+function tParts(i,r,pos,P){const medal=["Ouro","Prata","Bronze"];const t=TX(i),x=r.find(y=>y.i===i),I=teamInfo(i),podPts=x.o*P.o+x.p*P.p+x.b*P.b,partPts=x.part*P.part,penPts=x.pen||0,exL=exSrc(false).map(d=>({n:d.n||"Pontuação extra",v:exV(d)[i]||0})).filter(e=>e.v),exPos=exL.reduce((s,e)=>s+Math.max(0,e.v),0),tot=Math.max(1,partPts+podPts+exPos),k="tm-"+i;
     const C=t.c.map(c=>c.toLowerCase()),vars=`--t0:${C[0]};--t1:${C[1]};--t2:${C[2]};--t3:${C[3]};--tk0:${inkOn(C[0])};--tk1:${inkOn(C[1])}`;
     const pods=LIST().flatMap(m=>{const q=R(m.id);return[q.ouro,q.prata,q.bronze].map((v,kk)=>v===i?{m,k:kk}:null).filter(Boolean)}).sort((a,b)=>a.k-b.k);
     const vsTxt=(p,o)=>isT(o)?esc(TX(o).s):(I.src(p)?"a definir":"folga");
@@ -2006,8 +2008,8 @@ function tParts(i,r,pos,P){const medal=["Ouro","Prata","Bronze"];const t=TX(i),x
     <div class="ttiles"><div><b>${I.wins}</b><span>Vitórias</span></div><div><b>${I.losses}</b><span>Derrotas</span></div><div><b>${I.alive}</b><span>Em disputa</span></div><div class="${x.npen?"pn":""}"><b>${x.npen}</b><span>Penalidades</span></div></div>
     `,body:`
     <button class="btn sun shareb" type="button" data-act="share" data-id="${i}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Compartilhar turma</button>
-    <div><span class="tlab">De onde vêm os pontos</span><div class="tbar" role="img" aria-label="Participação ${partPts} pontos, pódios ${podPts} pontos"><span class="bp" style="width:${partPts/tot*100}%"></span><span class="bd" style="width:${podPts/tot*100}%"></span></div>
-      <ul class="tleg"><li><span><i class="bp"></i>Participação <small>(${x.part} ${x.part===1?"modalidade":"modalidades"}${x.pp?`; ${x.pp} no pódio não ${x.pp===1?"conta":"contam"}`:""}${x.wo?`; sem pontos em ${x.wo} por W.O.`:""})</small></span><b>+${partPts}</b></li><li><span><i class="bd"></i>Pódios <small>(${pods.length})</small></span><b>+${podPts}</b></li><li><span><i class="bn"></i>Penalidades <small>(${x.npen})</small></span><b class="${penPts?"neg":""}">${penPts?penPts:"0"}</b></li>${x.ex?`<li><span><i class="bx"></i>Pontos extras</span><b class="${x.ex<0?"neg":""}">${x.ex>0?"+":""}${x.ex}</b></li>`:""}<li class="ttot"><span>Total</span><b>${x.pts} pts</b></li></ul></div>
+    <div><span class="tlab">De onde vêm os pontos</span><div class="tbar" role="img" aria-label="Pódios ${podPts} pontos, participação ${partPts} pontos${exPos?`, extras ${exPos} pontos`:""}"><span class="bd" style="width:${podPts/tot*100}%"></span><span class="bp" style="width:${partPts/tot*100}%"></span>${exPos?`<span class="bx" style="width:${exPos/tot*100}%"></span>`:""}</div>
+      <ul class="tleg"><li><span><i class="bd"></i>Pódios <small>(${pods.length})</small></span><b>+${podPts}</b></li><li><span><i class="bp"></i>Participação</span><b>+${partPts}</b></li><li><span><i class="bn"></i>Penalidades <small>(${x.npen})</small></span><b class="${penPts?"neg":""}">${penPts?penPts:"0"}</b></li>${exL.map(e=>`<li><span><i class="bx"></i>${esc(e.n)} <small>(extra)</small></span><b class="${e.v<0?"neg":""}">${e.v>0?"+":""}${e.v}</b></li>`).join("")}<li class="ttot"><span>Total</span><b>${x.pts} pts</b></li></ul></div>
     ${liveH}${nxH}
     <div><span class="tlab">Pódios</span>${pods.length?`<ul class="tpods">${pods.map(o=>`<li><span class="mdot m${o.k+1}" aria-hidden="true">${o.k+1}</span><a href="#m-${o.m.id}">${esc(o.m.n)}</a><small>${medal[o.k]}</small></li>`).join("")}</ul>`:`<p class="mut" style="margin:2px 0 0;font-size:14px">Ainda sem pódio.</p>`}</div>
     ${jogos.n?`<section class="tjsec"><div class="tjh"><span class="tlab">Jogos disputados (${jogos.n})</span><span class="tjcs">${jogos.chips}</span></div><ul class="tjl2">${jogos.rows}</ul></section>`:""}
@@ -2097,7 +2099,7 @@ function vOrg(){if(!st.can)return`<p>Esta área é só para a organização.</p>
   const cores=sec("o-cores","Cores do evento",`<p class="mut" style="margin:0;font-size:14px">Cor principal da identidade do interclasse do ano. O site ajusta todos os tons sozinho e mostra uma prévia na hora; só vale para todos depois de salvar. Medalhas e cartões não mudam.</p>
     <div class="acts" style="align-items:center"><label class="cin" style="font-weight:600">Cor principal <input type="color" id="cor_ev" value="${esc((st.corPreview||(st.cfg&&st.cfg.cor)||BASE_COR).toLowerCase())}"></label><button class="btn sun" data-act="savecor">Salvar cores</button><button class="btn ghost" data-act="resetcor">Voltar ao verde padrão</button></div>`);
   const ip=st.imp;
-  const backup=sec("o-backup","Relatório, planilha e backup",`<h4 class="dayh">Relatório final em PDF</h4><p class="mut" style="margin:0;font-size:14px">Classificação geral, pódio de cada modalidade, resultados de todas as partidas e penalidades, prontos para imprimir ou enviar.</p>
+  const backup=sec("o-backup","Relatório, planilha e backup",`<h4 class="dayh">Relatório final em PDF</h4><p class="mut" style="margin:0;font-size:14px">Em formato de apresentação: pódio geral, números do evento, gráficos de pontos, medalhas, pódios de cada modalidade, pontos extras aprovados e penalidades, com as tabelas completas no anexo.</p>
     <div class="acts"><button class="btn sun" data-act="pdf">Baixar relatório em PDF</button></div>
     <h4 class="dayh">Importar dados de uma planilha</h4><p class="mut" style="margin:0;font-size:14px">Baixe o modelo (já vem com os dados atuais), preencha ou corrija no Excel ou Google Planilhas e envie de volta. Antes de gravar, o site mostra um resumo para você conferir.</p>
     <div class="acts"><button class="btn" data-act="modelo">Baixar modelo de planilha (.xlsx)</button></div>
@@ -2159,16 +2161,17 @@ function vPainel(){const pv=st.opv==="prev"&&exPend()?"prev":"pub",r=rank(pv==="
 function vExtras(){const L=EXL(),lab={vazio:["","Não lançado"],rasc:["rasc","Rascunho · só a organização vê"],alt:["alt","Alterado · falta aprovar de novo"],ok:["ok","Aprovado · aparece para todos"]};
   const card=x=>{const s=exState(x),v=exV(x.d||x.q),tot=v.reduce((a,b)=>a+(b||0),0),filled=v.some(b=>b!=null),[c,l]=lab[s];
     return`<section class="exc" aria-labelledby="exh-${x.id}"><div class="exc-h"><h3 id="exh-${x.id}">${esc(x.n)}</h3><span class="exst ${c}">${l}</span></div>
-    ${x.fixo?"":`<label class="exn">Nome da pontuação<input id="exn_${x.id}" maxlength="50" value="${esc(x.n)}"></label>`}
+    <label class="exn">Nome da atividade <small class="mut">(aparece no cartão da turma e no relatório)</small><input id="exn_${x.id}" maxlength="50" value="${esc(x.n)}"></label>
     <div class="exg">${Array.from({length:12},(_,i)=>`<label class="exi">${badge(i,28)}<span>${esc(TX(i).s)}</span><input type="number" inputmode="numeric" step="1" id="exv_${x.id}_${i}" value="${v[i]==null?"":v[i]}" aria-label="${esc(x.n)}: pontos de ${esc(tn(i))}"></label>`).join("")}</div>
     <p class="mut exs">${filled?`Total distribuído: <b>${tot} pts</b>`:"Preencha os pontos de cada turma. Deixe em branco quem não pontuou."}</p>
-    <div class="acts"><button class="btn" data-act="exsave" data-id="${x.id}">Salvar rascunho</button>${(s==="rasc"||s==="alt")&&filled?`<button class="btn sun" data-act="exok" data-id="${x.id}">Aprovar e mostrar para todos</button>`:""}${x.q?`<button class="btn ghost" data-act="exhide" data-id="${x.id}">Ocultar do público</button>`:""}${x.fixo?"":st.exdel===x.id?`<button class="btn warn" data-act="exdel" data-id="${x.id}">Confirmar: apagar pontuação</button>`:`<button class="btn ghost" data-act="exdel0" data-id="${x.id}">Apagar</button>`}</div></section>`};
+    <div class="acts"><button class="btn" data-act="exsave" data-id="${x.id}">Salvar rascunho</button>${(s==="rasc"||s==="alt")&&filled?`<button class="btn sun" data-act="exok" data-id="${x.id}">Aprovar e mostrar para todos</button>`:""}${x.q?`<button class="btn ghost" data-act="exhide" data-id="${x.id}">Ocultar do público</button>`:""}${st.exdel===x.id?`<button class="btn warn" data-act="exdel" data-id="${x.id}">Confirmar: apagar pontuação</button>`:`<button class="btn ghost" data-act="exdel0" data-id="${x.id}">Apagar</button>`}</div></section>`};
   const nPend=exPend(),r0=rank(false),r1=rank(true),pos0=Object.fromEntries(r0.map((x,k)=>[x.i,k])),diff=r1.some((x,k)=>x.pts!==(r0.find(y=>y.i===x.i)||{}).pts);
   const prev=`<section class="ochart" aria-labelledby="exp-h"><h3 id="exp-h">Prévia do placar geral com os extras</h3><p class="mut och-s">${diff?"Como o placar fica se todas as pontuações forem aprovadas. Só a organização vê esta prévia.":"Sem diferença em relação ao placar atual."}</p>
     <div class="tscroll" tabindex="0" role="region" aria-label="Tabela, role para o lado se precisar"><table class="oprev"><thead><tr><th scope="col">Pos.</th><th scope="col">Turma</th><th scope="col">Agora</th><th scope="col">Extras</th><th scope="col">Com extras</th><th scope="col">Posição</th></tr></thead><tbody>${r1.map((x,k)=>{const a=r0.find(y=>y.i===x.i),d=pos0[x.i]-k;return`<tr><td>${k+1}º</td><th scope="row"><span class="omd-t">${badge(x.i,24)}${esc(TX(x.i).s)}</span></th><td>${a.pts}</td><td>${x.ex?(x.ex>0?"+":"")+x.ex:"·"}</td><td><b>${x.pts}</b></td><td class="${d>0?"up":d<0?"dn":""}">${d>0?`<span aria-hidden="true">▲</span> sobe ${d}`:d<0?`<span aria-hidden="true">▼</span> desce ${-d}`:"="}</td></tr>`}).join("")}</tbody></table></div>
     ${nPend>1?`<div class="acts"><button class="btn sun" data-act="exall">Aprovar todas (${nPend})</button></div>`:""}</section>`;
   return`<div class="exintro"><p>Lance aqui as pontuações das atividades à parte. <b>Enquanto não forem aprovadas, só a organização vê</b> esses pontos (aqui e no Painel). Ao aprovar, elas entram no placar geral para todo mundo. Dá para ocultar de novo a qualquer momento.</p></div>
   ${L.map(card).join("")}
+  ${EXR().length?`<p class="mut exrem">Removidas: ${EXR().map(x=>`${esc(x.n)} <button type="button" class="btn ghost" data-act="exrest" data-id="${x.id}">Restaurar</button>`).join(" ")}</p>`:""}
   <details class="tro exnew" data-id="exnew" ${st.open.has("exnew")?"open":""}><summary>Adicionar outra pontuação extra</summary><label>Nome<input id="exnm" maxlength="50" placeholder="Ex.: Gincana solidária"></label><div class="acts"><button class="btn sun" data-act="exnew">Criar pontuação</button></div></details>
   ${prev}`}
 
@@ -2325,23 +2328,118 @@ const agoraTxt=()=>new Date().toLocaleString("pt-BR",{timeZone:"America/Recife",
 const pdfTxt=t=>String(t??"").replace(/[−–—]/g,"-").replace(/[^\x00-\xff]/g,"");
 const sitTxt=m=>status(m)[1];
 async function gerarPDF(){toast("Gerando o relatório…");await need("pdf");const{jsPDF}=window.jspdf,AT=window.autoTable;
-  const doc=new jsPDF({unit:"pt",format:"a4"}),W=doc.internal.pageSize.getWidth(),cor=(st.cfg&&st.cfg.cor)||BASE_COR,rgb=hex2rgb(cor),dk=hsl2rgb(rgb2hsl(...rgb)[0],.5,.2);
+  const W=960,Hh=540,doc=new jsPDF({unit:"pt",format:[W,Hh],orientation:"landscape"}),cor=(st.cfg&&st.cfg.cor)||BASE_COR,rgb=hex2rgb(cor),dk=hsl2rgb(rgb2hsl(...rgb)[0],.5,.2),lt=hsl2rgb(rgb2hsl(...rgb)[0],.45,.94);
   doc.setProperties({title:"Interclasse 2026 - Relatório final",subject:"Resultados do Interclasse da ETE Cícero Dias",creator:"Interclasse 2026"});try{doc.setLanguage("pt-BR")}catch(e){}
-  doc.setFillColor(...rgb);doc.rect(0,0,W,86,"F");doc.setTextColor(...dk);doc.setFont("helvetica","bold");doc.setFontSize(24);doc.text("INTERCLASSE 2026",40,42);
-  doc.setFont("helvetica","normal");doc.setFontSize(11);doc.text(pdfTxt(`ETE Cícero Dias · Relatório final · Gerado em ${agoraTxt()}`),40,64);
-  const head={fillColor:dk,textColor:255,fontStyle:"bold"},base={font:"helvetica",fontSize:9,cellPadding:4,overflow:"linebreak"},alt={fillColor:[244,247,244]};
-  let y=110;const titulo=t=>{if(y>740){doc.addPage();y=50}doc.setTextColor(...dk);doc.setFont("helvetica","bold");doc.setFontSize(14);doc.text(pdfTxt(t),40,y);y+=8};
-  const tab=(h,b,o={})=>{AT(doc,Object.assign({startY:y,head:[h.map(pdfTxt)],body:b.map(r=>r.map(pdfTxt)),styles:base,headStyles:head,alternateRowStyles:alt,margin:{left:40,right:40}},o));y=doc.lastAutoTable.finalY+26};
-  const r=rank(),P=PTS();
-  titulo("Classificação geral");tab(["Pos.","Turma","Ouro","Prata","Bronze","Particip.","Penalid.","Pts penal.","Extras","Total"],r.map((x,k)=>[k+1+"º",tn(x.i),x.o,x.p,x.b,x.part,x.npen,x.pen||0,x.ex||0,x.pts]),{columnStyles:{0:{halign:"center"},2:{halign:"center"},3:{halign:"center"},4:{halign:"center"},5:{halign:"center"},6:{halign:"center"},7:{halign:"center"},8:{halign:"center"},9:{halign:"right",fontStyle:"bold"}}});
-  doc.setFontSize(8);doc.setTextColor(90);doc.setFont("helvetica","normal");doc.text(pdfTxt(`Pontuação: 1º ${P.o} · 2º ${P.p} · 3º ${P.b} · participação ${P.part} por modalidade · penalidades conforme item 9 do edital.`),40,y-14);y+=4;
-  titulo("Pódio por modalidade");tab(["Modalidade","Situação","1º lugar","2º lugar","3º lugar"],LIST().map(m=>{const q=R(m.id);return[m.n,sitTxt(m),isT(q.ouro)?tn(q.ouro):"-",isT(q.prata)?tn(q.prata):"-",isT(q.bronze)?tn(q.bronze):"-"]}));
-  titulo("Resultados das partidas");const rows=[];for(const m of LIST()){const ps=parts(m.id).filter(p=>isT(p.a)||isT(p.b)).sort((a,b)=>(a.r||1)-(b.r||1)||(a.ordem||0)-(b.ordem||0));
+  const X=h=>{h=String(h||"#888888");if(h.length===4)h="#"+h[1]+h[1]+h[2]+h[2]+h[3]+h[3];return hex2rgb(h)};
+  const T=t=>pdfTxt(t),F=(c)=>doc.setFillColor(...(Array.isArray(c)?c:X(c))),D=(c)=>doc.setDrawColor(...(Array.isArray(c)?c:X(c))),C=(c)=>doc.setTextColor(...(Array.isArray(c)?c:X(c)));
+  const font=(w,s)=>{doc.setFont("helvetica",w);doc.setFontSize(s)};
+  const txt=(t,x,y,o)=>doc.text(T(t),x,y,o||{});
+  const fit=(t,max,s,w="bold")=>{t=T(t);font(w,s);if(doc.getTextWidth(t)<=max)return t;while(t.length>1&&doc.getTextWidth(t+"...")>max)t=t.slice(0,-1);return t.trimEnd()+"..."};
+  const r=rank(),P=PTS(),G=["#2f8f3a","#d99a00","#3b5bdb","#c62828"];
+  const badgeP=(i,x,y,R)=>{const t=TX(i),c=t.c.map(v=>v||"#888");F(c[0]);D(c[1]);doc.setLineWidth(Math.max(1.5,R*.14));doc.circle(x,y,R,"FD");C(inkOn(c[0]));font("bold",Math.max(6,R*.72));doc.text(T(t.s),x,y+R*.26,{align:"center"})};
+  let first=true;
+  const slide=(titulo,sub)=>{if(!first)doc.addPage([W,Hh],"landscape");first=false;F([251,251,248]);doc.rect(0,0,W,Hh,"F");F(rgb);doc.rect(0,0,W,8,"F");
+    C(dk);font("bold",10);txt("INTERCLASSE 2026",48,40);font("bold",30);txt(titulo,48,78);if(sub){C([90,100,92]);font("normal",13);txt(sub,48,100)}};
+  const card=(x,y,w,h,fill=[255,255,255])=>{F(fill);D([222,228,222]);doc.setLineWidth(1);doc.roundedRect(x,y,w,h,12,12,"FD")};
+  const act=LIST().filter(m=>!cancelada(m)),enc=act.filter(m=>isT(R(m.id).ouro)),canc=LIST().filter(m=>cancelada(m));
+  const jog=st.par.filter(p=>{const m=MODX(p.mod);return m&&!cancelada(m)&&isT(p.a)&&isT(p.b)&&!p.folga&&!/extra/.test(norm(p.fase||""))}),jd=jog.filter(p=>isT(p.venc));
+  const pens=PENS(),penSum=pens.reduce((s,x)=>s+x.pts,0),nWO=pens.filter(x=>x.cod==="wo").length,exA=exSrc(false);
+  const top=r[0];
+
+  // 1. capa
+  first=false;F(rgb);doc.rect(0,0,W,Hh,"F");F(dk);doc.rect(0,Hh-120,W,120,"F");
+  C(dk);font("bold",16);txt("ETE CÍCERO DIAS · PROJETO NAVE RECIFE",60,110);font("bold",78);txt("INTERCLASSE",56,200);txt("2026",56,282);
+  font("normal",20);txt("Relatório final · 24 a 27 de novembro",60,326);
+  if(top&&top.pts){badgeP(top.i,96,Hh-60,34);C([255,255,255]);font("normal",14);txt("Campeã geral",150,Hh-74);font("bold",28);txt(`${TX(top.i).s}${TX(top.i).p?" · "+TX(top.i).p:""}`,150,Hh-44);font("bold",28);txt(`${top.pts} pts`,W-60,Hh-52,{align:"right"})}
+  C([255,255,255]);font("normal",10);txt(`Gerado em ${agoraTxt()}`,W-60,Hh-20,{align:"right"});
+
+  // 2. pódio geral
+  slide("Pódio geral","As três turmas com mais pontos no placar geral.");
+  {const cols=[[r[1],2,170,"#c9d1d9"],[r[0],1,230,"#ffd84d"],[r[2],3,130,"#d68a4c"]],cw=220,gap=26,x0=(W-(cw*3+gap*2))/2,base=480;
+   cols.forEach(([x,pos,h,mc],k)=>{if(!x)return;const cx=x0+k*(cw+gap)+cw/2,top=base-h;F(mc);doc.roundedRect(cx-cw/2,top,cw,h,10,10,"F");doc.rect(cx-cw/2,base-12,cw,12,"F");
+     C([30,30,30]);font("bold",54);txt(pos+"º",cx,top+66,{align:"center"});font("bold",22);txt(`${x.pts} pts`,cx,top+100,{align:"center"});
+     badgeP(x.i,cx,top-50,pos===1?34:28);
+     C([40,40,40]);font("bold",15);txt(fit(TX(x.i).s+(TX(x.i).p?" · "+TX(x.i).p:""),cw-16,15),cx,top+(h>150?128:122),{align:"center"})});
+   F(dk);doc.rect(x0-20,base,cw*3+gap*2+40,4,"F")}
+
+  // 3. números
+  slide("O Interclasse em números");
+  {const K=[[`${enc.length}`,`modalidades com pódio${canc.length?` (${canc.length} canceladas)`:""}`],[`${jd.length}`,"jogos com resultado"],["12","turmas participando"],[`${pens.length}`,`penalidades (${penSum} pts)`],[`${nWO}`,nWO===1?"W.O.":"W.O. no total"],[`${exA.length}`,exA.length===1?"pontuação extra aprovada":"pontuações extras aprovadas"]];
+   const cw=270,ch=150,gx=27,gy=24,x0=(W-(cw*3+gx*2))/2,y0=130;
+   K.forEach(([v,l],k)=>{const x=x0+(k%3)*(cw+gx),y=y0+Math.floor(k/3)*(ch+gy);card(x,y,cw,ch);F(rgb);doc.rect(x+18,y+20,40,5,"F");C(dk);font("bold",54);txt(v,x+18,y+88);C([80,90,82]);font("normal",14);txt(fit(l,cw-36,14,"normal"),x+18,y+120)});
+   C([90,100,92]);font("normal",11);txt(`Pontuação: 1º ${P.o} · 2º ${P.p} · 3º ${P.b} · participação ${P.part} por modalidade (do 4º lugar em diante) · W.O. ${-20} e sem participação.`,W/2,Hh-24,{align:"center"})}
+
+  // 4. classificação geral (barras)
+  slide("Classificação geral","De onde vêm os pontos de cada turma.");
+  {const rows=r.map(x=>({x,pod:x.o*P.o+x.p*P.p+x.b*P.b,part:x.part*P.part,exP:Math.max(0,x.ex),neg:-(x.pen||0)-Math.min(0,x.ex)}));
+   const mP=Math.max(1,...rows.map(a=>a.pod+a.part+a.exP)),mN=Math.max(0,...rows.map(a=>a.neg));
+   const lx=48,lw=150,tw=W-lx-lw-110,nw=mN?tw*mN/(mP+mN):0,pw=tw-nw,zx=lx+lw+nw,y0=132,rh=(Hh-y0-56)/12;
+   const leg=[["Pódios",G[1]],["Participação",G[0]],["Extras",G[2]],["Penalidades",G[3]]];let lgx=W-48;font("normal",11);
+   for(const [l,c] of leg.slice().reverse()){const w=doc.getTextWidth(T(l));lgx-=w;C([60,70,62]);txt(l,lgx,100);lgx-=16;F(c);doc.rect(lgx,91,11,11,"F");lgx-=18}
+   rows.forEach((a,k)=>{const y=y0+k*rh,bh=Math.min(18,rh*.62),by=y+(rh-bh)/2;
+     C([110,118,112]);font("normal",12);txt(`${k+1}º`,lx+18,y+rh/2+4,{align:"right"});badgeP(a.x.i,lx+36,y+rh/2,10);C(dk);font("bold",13);txt(fit(TX(a.x.i).s+(TX(a.x.i).p?" · "+TX(a.x.i).p:""),lw-58,13),lx+52,y+rh/2+4);
+     let cx=zx;for(const [v,c] of [[a.pod,G[1]],[a.part,G[0]],[a.exP,G[2]]]){if(v>0){const w=v/mP*pw;F(c);doc.rect(cx,by,Math.max(1,w-1.5),bh,"F");cx+=w}}
+     if(a.neg>0){const w=a.neg/mN*nw;F(G[3]);doc.rect(zx-w,by,w-1.5,bh,"F")}
+     C(dk);font("bold",13);txt(`${a.x.pts}`,W-48,y+rh/2+4,{align:"right"})});
+   D([150,160,152]);doc.setLineWidth(1);doc.line(zx,y0-4,zx,y0+rh*12+2)}
+
+  // 5. medalhas
+  slide("Quadro de medalhas","Ordem por ouro, depois prata e bronze.");
+  {const md=r.slice().sort((a,b)=>b.o-a.o||b.p-a.p||b.b-a.b||a.i-b.i),half=6,cw=(W-96-24)/2,rh=56,y0=128;
+   md.forEach((x,k)=>{const col=Math.floor(k/half),row=k%half,X0=48+col*(cw+24),y=y0+row*rh;card(X0,y,cw,rh-8);C([110,118,112]);font("bold",14);txt(`${k+1}º`,X0+30,y+30,{align:"right"});badgeP(x.i,X0+54,y+24,14);C(dk);font("bold",15);txt(fit(TX(x.i).s+(TX(x.i).p?" · "+TX(x.i).p:""),cw-300,15),X0+76,y+29);
+     [[x.o,"#f2c200"],[x.p,"#a9b4bf"],[x.b,"#c97a3d"]].forEach(([n,c],j)=>{const mx=X0+cw-200+j*54;F(c);doc.circle(mx,y+24,13,"F");C(j===0?[60,45,0]:[30,30,30]);font("bold",13);txt(String(n),mx,y+29,{align:"center"})});
+     C(dk);font("bold",16);txt(String(x.o+x.p+x.b),X0+cw-22,y+30,{align:"right"})})}
+
+  // 6. pódios por modalidade
+  {const L=LIST(),per=12,pages=Math.ceil(L.length/per);for(let pg=0;pg<pages;pg++){slide(pages>1?`Pódio de cada modalidade (${pg+1}/${pages})`:"Pódio de cada modalidade");
+    const cw=(W-96-3*16)/4,ch=118,y0=118;L.slice(pg*per,pg*per+per).forEach((m,k)=>{const x=48+(k%4)*(cw+16),y=y0+Math.floor(k/4)*(ch+12),q=R(m.id),cn=cancelada(m);card(x,y,cw,ch);
+      C(dk);font("bold",13);txt(fit(m.n,cw-24,13),x+12,y+22);
+      if(cn){C([150,60,50]);font("normal",12);txt("Cancelada",x+12,y+48);return}
+      [[q.ouro,"1º","#f2c200"],[q.prata,"2º","#a9b4bf"],[q.bronze,"3º","#c97a3d"]].forEach(([t,l,c],j)=>{const yy=y+44+j*24;F(c);doc.circle(x+20,yy-4,8,"F");C([30,30,30]);font("bold",8);txt(l,x+20,yy-1.5,{align:"center"});
+        if(isT(t)){badgeP(t,x+42,yy-4,8);C(dk);font("bold",12);txt(fit(TX(t).s+(TX(t).p?" · "+TX(t).p:""),cw-70,12),x+56,yy)}else{C([150,155,150]);font("normal",12);txt("-",x+40,yy)}})})}}
+
+  // 7. pontos extras
+  if(exA.length){slide("Pontos extras","Atividades à parte que somaram pontos no placar geral.");
+    const head=["Turma",...exA.map(d=>d.n||"Extra"),"Total"],body=Array.from({length:12},(_,i)=>i).map(i=>{const v=exA.map(d=>exV(d)[i]||0);return[i,v,v.reduce((a,b)=>a+b,0)]}).sort((a,b)=>b[2]-a[2]||a[0]-b[0]);
+    AT(doc,{startY:118,margin:{left:48,right:48},head:[head.map(T)],body:body.map(([i,v,t])=>[T(tn(i)),...v.map(x=>x?String(x):"-"),String(t)]),styles:{font:"helvetica",fontSize:11,cellPadding:5,halign:"center"},headStyles:{fillColor:dk,textColor:255,fontStyle:"bold"},alternateRowStyles:{fillColor:lt},columnStyles:{0:{halign:"left",fontStyle:"bold"},[head.length-1]:{fontStyle:"bold"}}})}
+
+  // 8. penalidades
+  slide("Penalidades",`${pens.length} ${pens.length===1?"penalidade":"penalidades"} · ${penSum} pontos descontados · ${nWO} W.O.`);
+  {const byT=Array.from({length:12},(_,i)=>({i,pts:pens.filter(x=>x.t===i).reduce((s,x)=>s+x.pts,0),n:pens.filter(x=>x.t===i).length})).sort((a,b)=>a.pts-b.pts||a.i-b.i),mx=Math.max(1,...byT.map(x=>-x.pts));
+   const lw=(W-96)*.55,y0=128,rh=(Hh-y0-48)/12;C(dk);font("bold",13);
+   byT.forEach((x,k)=>{const y=y0+k*rh;badgeP(x.i,60,y+rh/2,9);C(dk);font("bold",12);txt(TX(x.i).s,76,y+rh/2+4);const w=(-x.pts)/mx*(lw-170);if(w>0){F(G[3]);doc.rect(120,y+rh*.22,w,rh*.56,"F")}C(x.pts?[180,35,24]:[140,145,140]);font("bold",12);txt(x.pts?`${x.pts} (${x.n})`:"0",126+w,y+rh/2+4)});
+   const cods=[...new Set(pens.map(x=>x.cod))].map(c=>{const a=pens.filter(x=>x.cod===c);return{nm:(PENM[c]&&PENM[c][1])||a[0].txt||c,n:a.length,pts:a.reduce((s,x)=>s+x.pts,0)}}).sort((a,b)=>b.n-a.n).slice(0,8);
+   const rx=48+lw+20,rw=W-48-rx;card(rx,y0-6,rw,Hh-y0-36);C(dk);font("bold",14);txt("Infrações mais comuns",rx+16,y0+18);
+   if(!cods.length){C([110,118,112]);font("normal",12);txt("Nenhuma penalidade registrada.",rx+16,y0+44)}
+   cods.forEach((c,k)=>{const y=y0+44+k*38;C([40,48,42]);font("normal",11);const ls=doc.splitTextToSize(T(c.nm),rw-90).slice(0,2);doc.text(ls,rx+16,y);C([180,35,24]);font("bold",12);txt(`${c.n}×`,rx+rw-16,y,{align:"right"})})}
+
+  // 9. andamento
+  slide("Os 4 dias","Modalidades e jogos de cada dia do Interclasse.");
+  {const dd=DIAS.map(d=>{const l=LIST().filter(m=>H(m)[0].d===d.d),a=l.filter(m=>!cancelada(m));const pods=a.filter(m=>isT(R(m.id).ouro));const jj=jd.filter(p=>{const m=MODX(p.mod);return p.fts?new Date(p.fts).toLocaleDateString("sv-SE",{timeZone:"America/Recife"})===d.d:m&&H(m)[0].d===d.d});return{d,n:a.length,pods,j:jj.length}});
+   const cw=(W-96-3*18)/4,y0=124,ch=Hh-y0-44,mj=Math.max(1,...dd.map(x=>x.j));
+   dd.forEach((x,k)=>{const cx=48+k*(cw+18);card(cx,y0,cw,ch);C(dk);font("bold",20);txt(x.d.c,cx+16,y0+32);C([110,118,112]);font("normal",12);txt(x.d.t,cx+16,y0+50);
+     const bh=110*(x.j/mj);F(G[0]);doc.rect(cx+16,y0+190-bh,46,bh,"F");C(dk);font("bold",30);txt(String(x.j),cx+74,y0+186);font("normal",11);C([90,100,92]);txt("jogos com resultado",cx+74,y0+202);
+     C(dk);font("bold",12);txt(`${x.pods.length} de ${x.n} modalidades com pódio`,cx+16,y0+236);
+     x.pods.slice(0,6).forEach((m,j)=>{const q=R(m.id),yy=y0+260+j*22;badgeP(q.ouro,cx+24,yy-4,7);C([40,48,42]);font("normal",11);txt(fit(m.n,cw-50,11,"normal"),cx+38,yy)});
+     if(x.pods.length>6){C([110,118,112]);font("normal",10);txt(`e mais ${x.pods.length-6}`,cx+16,y0+260+6*22)}})}
+
+  // 10. encerramento
+  doc.addPage([W,Hh],"landscape");F(rgb);doc.rect(0,0,W,Hh,"F");C(dk);font("bold",56);txt("Parabéns às turmas!",W/2,Hh/2-10,{align:"center"});font("normal",18);txt("Obrigado a todo mundo que fez o Interclasse 2026 acontecer.",W/2,Hh/2+30,{align:"center"});
+  font("bold",12);txt("#Interclasse2026 #NAVERecife",W/2,Hh-40,{align:"center"});
+  const nSl=doc.getNumberOfPages();
+
+  // anexo: tabelas
+  const head={fillColor:dk,textColor:255,fontStyle:"bold"},base={font:"helvetica",fontSize:9,cellPadding:4,overflow:"linebreak"},alt={fillColor:lt};
+  let y=0;const anexo=t=>{doc.addPage([W,Hh],"landscape");F([251,251,248]);doc.rect(0,0,W,Hh,"F");F(rgb);doc.rect(0,0,W,8,"F");C(dk);font("bold",10);txt("ANEXO",48,36);font("bold",20);txt(t,48,62);y=78};
+  const tab=(h,b,o={})=>{AT(doc,Object.assign({startY:y,head:[h.map(T)],body:b.map(r=>r.map(T)),styles:base,headStyles:head,alternateRowStyles:alt,margin:{left:48,right:48,top:40,bottom:40},willDrawPage:d=>{if(d.pageNumber>1){F([251,251,248]);doc.rect(0,0,W,Hh,"F");F(rgb);doc.rect(0,0,W,8,"F")}}},o))};
+  anexo("Classificação geral detalhada");tab(["Pos.","Turma","Ouro","Prata","Bronze","Particip.","Penalid.","Pts penal.","Extras","Total"],r.map((x,k)=>[k+1+"º",tn(x.i),x.o,x.p,x.b,x.part,x.npen,x.pen||0,x.ex||0,x.pts]),{columnStyles:{0:{halign:"center"},2:{halign:"center"},3:{halign:"center"},4:{halign:"center"},5:{halign:"center"},6:{halign:"center"},7:{halign:"center"},8:{halign:"center"},9:{halign:"right",fontStyle:"bold"}}});
+  anexo("Pódio por modalidade");tab(["Modalidade","Situação","1º lugar","2º lugar","3º lugar"],LIST().map(m=>{const q=R(m.id);return[m.n,sitTxt(m),isT(q.ouro)?tn(q.ouro):"-",isT(q.prata)?tn(q.prata):"-",isT(q.bronze)?tn(q.bronze):"-"]}));
+  anexo("Resultados das partidas");const rows=[];for(const m of LIST()){const ps=parts(m.id).filter(p=>isT(p.a)||isT(p.b)).sort((a,b)=>(a.r||1)-(b.r||1)||(a.ordem||0)-(b.ordem||0));
     for(const p of ps)rows.push([m.n,p.fase||"",p.n?"Jogo "+p.n:"",isT(p.a)?tn(p.a):"A definir",(p.pa!=null||p.pb!=null)?`${p.pa??0} x ${p.pb??0}`:"-",isT(p.b)?tn(p.b):(p.fb||p.tbd?"A definir":"folga"),isT(p.venc)?TX(p.venc).s:(p.live?"ao vivo":"-")])}
   tab(["Modalidade","Fase","Jogo","Turma","Placar","Turma","Vencedor"],rows.length?rows:[["Nenhuma partida registrada","","","","","",""]],{columnStyles:{4:{halign:"center"},6:{halign:"center",fontStyle:"bold"}}});
-  titulo("Penalidades");const L=PENS().slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
+  anexo("Penalidades");const L=PENS().slice().sort((a,b)=>(a.ts||0)-(b.ts||0));
   tab(["Turma","Infração","Pontos","Modalidade","Observação","Data"],L.length?L.map(x=>[tn(x.t),x.txt||"",x.pts,x.mod&&MODX(x.mod)?MODX(x.mod).n:"Geral",x.obs||"",x.ts?new Date(x.ts).toLocaleString("pt-BR",{timeZone:"America/Recife",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):""]):[["Nenhuma penalidade registrada","","","","",""]]);
-  const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(110);doc.text(pdfTxt(`Interclasse 2026 · ETE Cícero Dias · página ${i} de ${n}`),40,820)}
+  const n=doc.getNumberOfPages();for(let i=2;i<=n;i++){if(i===nSl)continue;doc.setPage(i);font("normal",9);C([120,128,122]);txt(`Interclasse 2026 · ETE Cícero Dias · ${i} de ${n}`,W-48,Hh-16,{align:"right"})}
   const ok=await baixar(`interclasse-2026-relatorio-${new Date().toISOString().slice(0,10)}.pdf`,doc.output("blob"));if(ok)toast("Relatório em PDF pronto.")}
 function turmaDe(v){const n=norm(String(v??"").trim());if(!n)return null;for(let i=0;i<12;i++){const t=TX(i);if(n===norm(t.s)||n===norm(tn(i))||n===norm(t.p)||n===norm(t.s+" "+t.p))return i}const m=n.match(/^([123][a-d])\b/);if(m){for(let i=0;i<12;i++)if(norm(TX(i).s)===m[1])return i}return undefined}
 function modDe(v){const n=norm(String(v??"").trim());if(!n)return null;return LIST().find(m=>norm(m.n)===n||m.id===n)||undefined}
@@ -2402,12 +2500,13 @@ const exRead=id=>{const v=Array.from({length:12},(_,i)=>{const e=document.getEle
 const ACT={
   otab:b=>{st.otab=b.dataset.id;st.exdel=null;render(true);requestAnimationFrame(()=>{const t=document.getElementById("otab-"+st.otab);if(t){t.focus({preventScroll:true});t.scrollIntoView({block:"nearest",inline:"nearest"});const h=document.querySelector(".otabs");if(h&&h.getBoundingClientRect().top<0)h.scrollIntoView({behavior:RM?"auto":"smooth",block:"start"})}})},
   opv:b=>{st.opv=b.dataset.id;render(true)},
-  exsave:b=>{const id=b.dataset.id,d=exRead(id);return w(()=>st.db.doc("extras/"+id).set(d),"Rascunho salvo. Só a organização vê.")},
+  exsave:b=>{const id=b.dataset.id,d=exRead(id),x=EXL().find(y=>y.id===id);return w(async()=>{await st.db.doc("extras/"+id).set(d);if(x&&x.q&&x.q.n!==d.n)await st.db.doc("extrapub/"+id).set({...x.q,n:d.n})},x&&x.q&&x.q.n!==d.n?"Salvo. O novo nome já aparece para todos; os pontos alterados esperam aprovação.":"Rascunho salvo. Só a organização vê.")},
   exok:b=>{const id=b.dataset.id,d=exRead(id),x=EXL().find(y=>y.id===id);if(!d.v.some(v=>v!=null))return toast("Preencha os pontos antes de aprovar");return w(async()=>{await st.db.doc("extras/"+id).set(d);await st.db.doc("extrapub/"+id).set({n:d.n,v:d.v,ts:Date.now()})},`${x?x.n:"Pontuação"} aprovada. Já aparece no placar.`)},
   exall:()=>{const L=EXL().filter(x=>{const s=exState(x);return(s==="rasc"||s==="alt")&&exV(x.d).some(v=>v!=null)});return w(async()=>{for(const x of L)await st.db.doc("extrapub/"+x.id).set({n:x.d.n,v:exV(x.d),ts:Date.now()})},"Pontuações aprovadas. Já aparecem no placar.")},
   exhide:b=>w(()=>st.db.doc("extrapub/"+b.dataset.id).delete(),"Pontuação oculta. Saiu do placar público."),
   exdel0:b=>{st.exdel=b.dataset.id;render(true)},
-  exdel:b=>{const id=b.dataset.id;st.exdel=null;return w(async()=>{await st.db.doc("extrapub/"+id).delete().catch(()=>{});await st.db.doc("extras/"+id).delete()},"Pontuação apagada.")},
+  exdel:b=>{const id=b.dataset.id,fx=EXD.some(e=>e[0]===id),x=EXL().find(y=>y.id===id);st.exdel=null;return w(async()=>{await st.db.doc("extrapub/"+id).delete().catch(()=>{});if(fx)await st.db.doc("extras/"+id).set({n:x?x.n:"",v:Array(12).fill(null),removida:true,ts:Date.now()});else await st.db.doc("extras/"+id).delete()},"Pontuação apagada.")},
+  exrest:b=>w(()=>st.db.doc("extras/"+b.dataset.id).delete(),"Pontuação de volta na lista."),
   exnew:()=>{const n=(val("exnm")||"").trim().slice(0,50);if(!n)return toast("Dê um nome para a pontuação");const id="x"+Date.now().toString(36);return w(()=>st.db.doc("extras/"+id).set({n,v:Array(12).fill(null),ts:Date.now()}),"Pontuação criada. Agora é só preencher.")},
   day:b=>{st.day=b.dataset.id;st.toNow=true;render(true)},
   toNow:()=>{const e=document.getElementById("agora-marca");if(e)e.scrollIntoView({behavior:RM?"auto":"smooth",block:"center"})},
