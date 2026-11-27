@@ -894,7 +894,7 @@ button.livechip{font:inherit;cursor:pointer;border:1px solid transparent}button.
 .credits{display:grid;gap:4px}.credits .made{font-size:13px;opacity:.9}.credits b{font-weight:700}
 .lbox{position:fixed;inset:0;background:rgba(10,30,12,.55);display:grid;place-items:center;z-index:20;padding:16px}.lbox[hidden]{display:none}
 .lcard{background:var(--bg);color:var(--ink);border-radius:12px;padding:22px;max-width:380px;width:100%;display:grid;gap:12px;box-shadow:0 20px 50px -20px rgba(0,0,0,.5)}
-.lcard input{width:100%}.lerr{color:var(--hot);margin:0;min-height:1.3em;font-size:14px}
+.lcard input{width:100%}.ladm summary{cursor:pointer;font-weight:600;color:var(--gm,var(--ink));min-height:32px}.ladm{display:grid;gap:8px}.ladm[open]{gap:8px}.lerr{color:var(--hot);margin:0;min-height:1.3em;font-size:14px}
 #toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,24px) scale(.94);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:600;font-size:15px;max-width:calc(100vw - 32px);opacity:0;pointer-events:none;transition:opacity .2s,transform .45s cubic-bezier(.2,1.4,.4,1);z-index:9;box-shadow:0 14px 30px -12px rgba(0,0,0,.45)}
 #toast.show{opacity:1;transform:translate(-50%,0) scale(1)}
 
@@ -1489,7 +1489,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 <dialog id="cfgd" class="askd cfgd" aria-labelledby="cfgt"><div class="askc"><div class="cfgh"><h2 id="cfgt">Ajustes do jogo</h2><button type="button" class="cfgx" data-cfgx aria-label="Fechar">×</button></div><div id="cfgb"></div></div></dialog>
 <div id="undo" class="undo" hidden role="status" aria-live="polite"><span id="undot"></span><button type="button" id="undob" class="undob">Desfazer</button><button type="button" id="undox" class="undox" aria-label="Fechar aviso">×</button><i class="ubar" aria-hidden="true"></i></div>
 <div id="svp" class="svp mini" hidden role="status" aria-live="polite" data-s="ok"><i aria-hidden="true"></i><span>Tudo salvo</span></div>
-<div id="loginbox" class="lbox" hidden><form id="loginform" class="lcard" aria-labelledby="lt"><h2 id="lt">Área da organização</h2><p class="mut" style="margin:0">Digite a senha da organização para lançar placar, penalidades e editar.</p><label>Senha<input type="password" id="lpw" autocomplete="current-password" required></label><p id="lerr" class="lerr" role="alert"></p><div class="acts"><button class="btn sun" type="submit" id="lbtn">Entrar</button><button class="btn ghost" type="button" data-act="lclose">Cancelar</button></div></form></div>
+<div id="loginbox" class="lbox" hidden><form id="loginform" class="lcard" aria-labelledby="lt"><h2 id="lt">Área da organização</h2><p class="mut" style="margin:0">Digite a senha da organização para lançar placar, penalidades e editar.</p><label>Senha<input type="password" id="lpw" autocomplete="current-password" required></label><details class="ladm"><summary>Sou a administradora</summary><label>E-mail da administradora<input type="email" id="lem" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="seu e-mail de administradora"></label><p class="mut" style="margin:0;font-size:13px">Só a administradora acessa a página Organização. Professores usam apenas a senha.</p></details><p id="lerr" class="lerr" role="alert"></p><div class="acts"><button class="btn sun" type="submit" id="lbtn">Entrar</button><button class="btn ghost" type="button" data-act="lclose">Cancelar</button></div></form></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <script>
 {
@@ -1661,7 +1661,7 @@ function vHome(){const r=rank(),max=Math.max(1,...r.map(x=>x.pts)),now=Date.now(
   const P=PTS();
   const today=new Date().toLocaleDateString("en-CA",{timeZone:"America/Recife"});
   const hoje=LIST().filter(m=>H(m).some(s=>s.d===today));
-  const quick=st.can&&st.edit?`<section class="edit" style="margin:0"><h3>Lançar resultados${hoje.length?" de hoje":""}</h3><a class="btn sun" href="#lancar" style="text-decoration:none;display:inline-flex;align-items:center;justify-self:start">Abrir tela de lançar placar</a><div class="ck">${(hoje.length?hoje:LIST()).map(m=>`<a class="lv" href="#m-${m.id}"><b>${esc(m.n)}</b><small>${isT(R(m.id).ouro)?"Pódio lançado":"Sem pódio"}</small></a>`).join("")}</div><div class="acts"><a class="btn ghost" href="#org" style="text-decoration:none;display:inline-flex;align-items:center">Turmas, pontos e avisos</a></div></section>`:"";
+  const quick=st.can&&st.edit?`<section class="edit" style="margin:0"><h3>Lançar resultados${hoje.length?" de hoje":""}</h3><a class="btn sun" href="#lancar" style="text-decoration:none;display:inline-flex;align-items:center;justify-self:start">Abrir tela de lançar placar</a><div class="ck">${(hoje.length?hoje:LIST()).map(m=>`<a class="lv" href="#m-${m.id}"><b>${esc(m.n)}</b><small>${isT(R(m.id).ouro)?"Pódio lançado":"Sem pódio"}</small></a>`).join("")}</div>${st.adm?`<div class="acts"><a class="btn ghost" href="#org" style="text-decoration:none;display:inline-flex;align-items:center">Turmas, pontos e avisos</a></div>`:""}</section>`:"";
   const lives=st.par.filter(p=>p.live&&isT(p.a)&&isT(p.b));
   const liveSec=lives.length?`<section class="livewrap" aria-label="Jogos ao vivo"><h2><span class="pulse"></span>Ao vivo agora</h2><div class="lgrid">${lives.map(p=>liveCard(p,st.can&&st.edit)).join("")}</div></section>`:"";
   const FIN=finale(r);
@@ -2300,7 +2300,7 @@ function vPen(){if(!(st.can&&st.edit))return gate("lançar penalidades");
     ${L.length?`<ul class="pnl">${L.map(item).join("")}</ul>`:`<p class="mut">${ALL.length?"Nenhuma penalidade com esses filtros.":"Nenhuma penalidade até agora."}</p>`}</section>`;
   return`<h2>Penalidades</h2><p class="mut">Perda de pontos conforme o item 9 do edital (e 3.9). A penalidade desconta direto da pontuação da turma no placar geral.</p>
   ${kpi}${form}<div class="pngrid">${teams}<div class="pncol">${listBox("Por modalidade",mods,"m")}${listBox("Por infração",cods,"c")}</div></div>${list}`}
-function vOrg(){if(!st.can)return`<p>Esta área é só para a organização.</p>`;if(!st.edit)return`<p>Troque para "Modo organização" no topo para usar esta área.</p>`;
+function vOrg(){if(!st.adm)return`<section class="gate"><h2>Organização</h2><p>Esta área é só para a <b>administradora do Interclasse</b>. Com a senha da organização dá para lançar placar, pódios e penalidades normalmente.</p>${st.can?"":`<p class="mut">Entre com a conta de administradora para continuar.</p>`}</section>`;if(!st.can)return`<p>Esta área é só para a organização.</p>`;if(!st.edit)return`<p>Troque para "Modo organização" no topo para usar esta área.</p>`;
   const P=PTS(),sec=(id,t,body,extra="")=>`<section class="edit osec" id="${id}" ${extra}><h3>${t}</h3>${body}</section>`;
   const nPend=exPend();
   const nav=[["painel","Painel"],["extras","Pontos extras","Extras"],["avisos","Avisos"],["agenda","Agenda"],["turmas","Turmas"],["extratos","Extratos por turma","Extratos"],["config","Pontuação e cores","Pontuação"],["dados","Relatório e backup","Relatório"]];
@@ -2480,7 +2480,7 @@ function draw0(force){const ae=document.activeElement;
   st.pending=false;
   const h=(location.hash||"#inicio").slice(1);
   const ED=st.can&&st.edit;document.body.classList.toggle("ed",ED);
-  const tabs=[["inicio","Placar"],["agenda","Agenda"],["modalidades","Modalidades"],["turmas","Turmas"]];if(ED)tabs.splice(1,0,["lancar","Lançar placar"],["pen","Penalidades"]),tabs.push(["org","Organização"]);
+  const tabs=[["inicio","Placar"],["agenda","Agenda"],["modalidades","Modalidades"],["turmas","Turmas"]];if(ED){tabs.splice(1,0,["lancar","Lançar placar"],["pen","Penalidades"]);if(st.adm)tabs.push(["org","Organização"])}
   const cur=h.startsWith("m-")?"modalidades":h;
   const tb=document.getElementById("tabs"),th=tabs.map(([k,l])=>`<a href="#${k}" ${cur===k?'aria-current="page"':""}>${l}</a>`).join("");
   if(tb.dataset.h!==th){tb.innerHTML=th;tb.dataset.h=th;const a=tb.querySelector("[aria-current]");if(a&&tb.scrollWidth>tb.clientWidth)tb.scrollTo({left:a.offsetLeft-24})}
@@ -3006,7 +3006,7 @@ document.addEventListener("change",e=>{const t=e.target;if(!t)return;if(t.id==="
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="pf_q"){st.pf=st.pf||{};st.pf.q=e.target.value;clearTimeout(st.pfT);st.pfT=setTimeout(()=>{const a=document.activeElement&&document.activeElement.id,pos=e.target.selectionStart;render(true);if(a==="pf_q"){const n=document.getElementById("pf_q");if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(x){}}}},250);return}if(e.target&&e.target.id==="q_mod"){st.q=e.target.value;applyQ()}if(e.target&&e.target.id==="l_q"){st.lq=e.target.value;applyLQ()}if(e.target&&e.target.id==="cor_ev"){st.corPreview=e.target.value;applyColors()}});
 document.getElementById("loginform").addEventListener("submit",async e=>{e.preventDefault();const pw=document.getElementById("lpw").value,er=document.getElementById("lerr"),bt=document.getElementById("lbtn");
   if(!pw)return;bt.disabled=true;er.textContent="Entrando…";
-  try{await IC_AUTH.login(pw);try{localStorage.setItem("ic-edit","1")}catch(e){}location.reload()}catch(err){er.textContent=/invalid|credentials/i.test(err&&err.message||"")?"Senha incorreta.":"Não deu para entrar. Confira a internet e tente de novo.";bt.disabled=false}});
+  try{const em=(document.getElementById("lem")||{}).value||"";await IC_AUTH.login(pw,em);try{localStorage.setItem("ic-edit","1")}catch(e){}location.reload()}catch(err){er.textContent=/invalid|credentials/i.test(err&&err.message||"")?"Senha incorreta.":"Não deu para entrar. Confira a internet e tente de novo.";bt.disabled=false}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){const bx=document.getElementById("loginbox");if(bx&&!bx.hidden)bx.hidden=true}});
 document.addEventListener("click",e=>{if(e.target.closest("[data-cfgx]")){document.getElementById("cfgd").close();return}if(e.target.id==="cfgd"){e.target.close();return}const b=e.target.closest("[data-act]");if(b&&b.dataset.act==="lv"){lvTap(b.dataset.id,b.dataset.s,+b.dataset.d);return}if(!b||st.busy)return;const f=ACT[b.dataset.act];if(!f)return;if(!b.dataset.orig)b.dataset.orig=b.textContent;
   Promise.resolve(f(b)).finally(()=>{if(b.dataset.ok==="1"&&b.isConnected){clearTimeout(b._rt);b._rt=setTimeout(()=>{if(b.isConnected&&b.dataset.ok==="1"){b.dataset.ok="";b.textContent=b.dataset.orig}},4000)}})});
@@ -3018,6 +3018,7 @@ render(true);
   if(!db){st.off=true;return render(true)}
   st.db=db;
   try{st.can=user?!!(await user.canEdit()):false}catch(e){st.can=false}
+  try{st.adm=st.can&&(user&&typeof user.isAdmin==="function"?!!(await user.isAdmin()):true)}catch(e){st.adm=false}
   if(st.can){c.use("assets").then(a=>{st.assets=a;render()}).catch(()=>{})}
   const timer=setTimeout(()=>{st.slow=true;render()},10000);
   const done=k=>s=>{st.upd=Date.now();if(!s.metadata.fromCache){st.ready[k]=true;if(k==="res")clearTimeout(timer)}};
